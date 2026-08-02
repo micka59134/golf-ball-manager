@@ -58,11 +58,7 @@ header {
   position: sticky; top: 0; z-index: 50; transition: background .2s, border-color .2s;
 }
 .logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: var(--text); }
-.logo .ball {
-  width: 30px; height: 30px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, #fff 0%, #e8e4dc 50%, #bbb 100%);
-  box-shadow: inset -2px -2px 5px rgba(0,0,0,0.1), 1px 1px 4px rgba(0,0,0,0.15);
-}
+.logo .ball { width: 36px; height: 36px; flex-shrink: 0; }
 .logo span { color: var(--primary); }
 .header-actions { display: flex; align-items: center; gap: 8px; }
 
@@ -420,7 +416,7 @@ tr.selected { background: rgba(79,70,229,0.03); }
 <body>
 
 <header>
-  <div class="logo"><div class="ball"></div>Golf Ball <span>Manager</span></div>
+  <div class="logo"><svg class="ball" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="bg" cx="38%" cy="35%" r="55%"><stop offset="0%" stop-color="#fff"/><stop offset="50%" stop-color="#f0ede6"/><stop offset="100%" stop-color="#c8c3b8"/></radialGradient><radialGradient id="dim" cx="45%" cy="40%" r="50%"><stop offset="0%" stop-color="rgba(0,0,0,0.06)"/><stop offset="100%" stop-color="rgba(0,0,0,0.02)"/></radialGradient><filter id="sh"><feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.18"/></filter></defs><circle cx="50" cy="50" r="46" fill="url(#bg)" filter="url(#sh)" stroke="#d0cdc5" stroke-width="0.5"/><circle cx="35" cy="30" r="3.5" fill="url(#dim)"/><circle cx="50" cy="25" r="3.5" fill="url(#dim)"/><circle cx="65" cy="30" r="3.5" fill="url(#dim)"/><circle cx="27" cy="43" r="3.5" fill="url(#dim)"/><circle cx="42" cy="40" r="3.5" fill="url(#dim)"/><circle cx="57" cy="38" r="3.5" fill="url(#dim)"/><circle cx="72" cy="43" r="3.5" fill="url(#dim)"/><circle cx="33" cy="55" r="3.5" fill="url(#dim)"/><circle cx="48" cy="52" r="3.5" fill="url(#dim)"/><circle cx="63" cy="52" r="3.5" fill="url(#dim)"/><circle cx="75" cy="57" r="3.5" fill="url(#dim)"/><circle cx="40" cy="65" r="3.5" fill="url(#dim)"/><circle cx="55" cy="64" r="3.5" fill="url(#dim)"/><circle cx="68" cy="67" r="3.5" fill="url(#dim)"/><circle cx="47" cy="76" r="3.5" fill="url(#dim)"/><circle cx="60" cy="77" r="3.5" fill="url(#dim)"/><ellipse cx="38" cy="32" rx="14" ry="10" fill="rgba(255,255,255,0.35)" transform="rotate(-25 38 32)"/></svg>Golf Ball <span>Manager</span></div>
   <div class="header-actions">
     <button class="btn-icon" onclick="toggleDark()" title="Changer de theme" id="themeBtn">&#127769;</button>
     <button class="btn btn-primary" onclick="openAdd()" style="padding:10px 40px;font-size:15px;font-weight:700;letter-spacing:.03em">+ Ajouter</button>
@@ -499,7 +495,7 @@ tr.selected { background: rgba(79,70,229,0.03); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.0.0</footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.1.0</footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
