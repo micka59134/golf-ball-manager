@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Golf Ball Manager</title>
+<style>
+:root {
+  --bg: #f4f6fb;
+  --bg-elevated: #ffffff;
+  --text: #1a1d29;
+  --text-muted: #6b7280;
+  --border: #e5e7eb;
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-soft: #eef2ff;
+  --green: #16a34a;
+  --green-soft: #ecfdf3;
+  --red: #dc2626;
+  --red-soft: #fef2f2;
+  --amber: #d97706;
+  --amber-soft: #fffbeb;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.06);
+  --shadow-lg: 0 8px 24px rgba(16,24,40,.12), 0 2px 6px rgba(16,24,40,.08);
+  --overlay: rgba(10,12,20,0.35);
+}
+.dark {
+  --bg: #12141c;
+  --bg-elevated: #1a1d29;
+  --text: #eef0f6;
+  --text-muted: #9198a8;
+  --border: #2a2e3d;
+  --primary: #818cf8;
+  --primary-hover: #a5b4fc;
+  --primary-soft: #232640;
+  --green: #4ade80;
+  --green-soft: #113222;
+  --red: #f87171;
+  --red-soft: #3a1a1c;
+  --amber: #fbbf24;
+  --amber-soft: #3a2f10;
+  --shadow: 0 1px 2px rgba(0,0,0,.3);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,.45);
+  --overlay: rgba(10,12,20,0.6);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100vh;
+  transition: background .2s, color .2s;
+}
+
+header {
+  background: var(--bg-elevated); border-bottom: 1px solid var(--border);
+  padding: 14px 24px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50; transition: background .2s, border-color .2s;
+}
+.logo { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; color: var(--text); }
+.logo .ball {
+  width: 30px; height: 30px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff 0%, #e8e4dc 50%, #bbb 100%);
+  box-shadow: inset -2px -2px 5px rgba(0,0,0,0.1), 1px 1px 4px rgba(0,0,0,0.15);
+}
+.logo span { color: var(--primary); }
+.header-actions { display: flex; align-items: center; gap: 8px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 13px; font-weight: 500; cursor: pointer;
+  background: var(--bg-elevated); color: var(--text); font-family: inherit;
+  white-space: nowrap; transition: all .15s;
+}
+.btn:hover { background: var(--bg); border-color: var(--text-muted); }
+.btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+.btn-danger { background: var(--red-soft); color: var(--red); border-color: transparent; }
+.btn-danger:hover { background: var(--red); color: #fff; }
+.btn-icon {
+  width: 34px; height: 34px; padding: 0; display: inline-flex;
+  align-items: center; justify-content: center; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: var(--bg-elevated);
+  color: var(--text-muted); cursor: pointer; font-size: 16px; transition: all .15s;
+}
+.btn-icon:hover { color: var(--text); background: var(--bg); }
+
+.container { max-width: 1440px; margin: 0 auto; padding: 20px 24px; }
+
+.panel {
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  border-radius: var(--radius); box-shadow: var(--shadow); transition: background .2s, border-color .2s;
+}
+
+.sync-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; color: var(--text-muted); padding: 4px 10px;
+  border-radius: 20px; background: var(--bg);
+}
+.sync-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+  animation: pulse 2s infinite;
+}
+.sync-dot.offline { background: var(--amber); animation: none; }
+.sync-dot.loading { background: var(--primary); }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0; margin-bottom: 16px;
+}
+.stat-item { padding: 16px 20px; border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; }
+.stat-item:last-child { border-right: none; }
+.stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+.stat-value { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.stat-sub { font-size: 12px; color: var(--text-muted); }
+
+.tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid var(--border); }
+.tab-btn {
+  padding: 10px 18px; border: none; background: none; font-size: 14px;
+  font-weight: 500; color: var(--text-muted); cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: inherit; transition: color .15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+.filters-panel {
+  padding: 14px 16px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.search-wrap { position: relative; flex: 1; min-width: 240px; }
+.search-wrap input {
+  width: 100%; padding: 9px 12px 9px 36px; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); font-size: 14px; background: var(--bg);
+  color: var(--text); font-family: inherit; transition: border-color .15s;
+}
+.search-wrap input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.search-wrap .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 14px; }
+
+.iselect { position: relative; }
+.iselect-btn {
+  padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 14px; background: var(--bg); color: var(--text); cursor: pointer;
+  display: flex; align-items: center; gap: 6px; white-space: nowrap;
+  font-family: inherit; transition: border-color .15s;
+}
+.iselect-btn:hover { border-color: var(--text-muted); }
+.iselect-btn::after { content: '\25BE'; font-size: 11px; color: var(--text-muted); margin-left: 2px; }
+.iselect-btn.active { border-color: var(--primary); background: var(--primary-soft); color: var(--primary); }
+
+.iselect-drop {
+  position: absolute; top: calc(100% + 4px); left: 0; min-width: 220px;
+  max-height: 320px; overflow-y: auto; background: var(--bg-elevated);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow-lg); z-index: 60; display: none; padding: 4px;
+}
+.iselect-drop.open { display: block; }
+.iselect-drop .iselect-search {
+  width: calc(100% - 8px); margin: 4px; padding: 7px 10px;
+  border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
+  background: var(--bg); color: var(--text); font-family: inherit;
+}
+.iselect-drop .iselect-search:focus { outline: none; border-color: var(--primary); }
+.iselect-opt {
+  padding: 7px 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
+  transition: background .1s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.iselect-opt:hover { background: var(--primary-soft); }
+.iselect-opt.selected { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+
+.reset-btn {
+  padding: 7px 12px; border: none; border-radius: var(--radius-sm);
+  font-size: 13px; background: none; color: var(--text-muted); cursor: pointer;
+  font-family: inherit; white-space: nowrap;
+}
+.reset-btn:hover { color: var(--red); }
+.results-count { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; margin-left: auto; white-space: nowrap; }
+
+.table-panel { margin-bottom: 16px; overflow: hidden; }
+.table-header {
+  padding: 14px 20px; display: flex; align-items: center;
+  justify-content: space-between; border-bottom: 1px solid var(--border);
+}
+.table-title { font-size: 15px; font-weight: 700; }
+.table-title .count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 28px; padding: 2px 8px; background: var(--primary-soft);
+  color: var(--primary); border-radius: 20px; font-size: 12px; font-weight: 600;
+  margin-left: 8px; font-variant-numeric: tabular-nums;
+}
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted);
+  border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer;
+  user-select: none; transition: color .15s; position: sticky; top: 0;
+  background: var(--bg-elevated); z-index: 2;
+}
+th:hover { color: var(--text); }
+th.sorted { color: var(--primary); }
+th .arrow { font-size: 10px; margin-left: 3px; }
+td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr { transition: background .1s; cursor: pointer; }
+tr:hover { background: var(--primary-soft); }
+tr.selected { background: rgba(79,70,229,0.03); }
+.dark tr.selected { background: rgba(129,140,248,0.06); }
+.col-num { text-align: center; font-variant-numeric: tabular-nums; }
+.num-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 32px; height: 32px; padding: 0 8px;
+  border-radius: 50%; background: var(--primary-soft); color: var(--primary);
+  font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
+  letter-spacing: .02em;
+}
+.num-badge.wide { border-radius: 16px; }
+.col-actions { text-align: right; white-space: nowrap; }
+.cell-marque { font-weight: 600; }
+.badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: .02em; }
+.badge-partner { background: var(--amber-soft); color: var(--amber); }
+.link-ext { color: var(--primary); display: inline-flex; text-decoration: none; }
+.link-ext:hover { color: var(--primary-hover); }
+.action-btn {
+  width: 30px; height: 30px; border: none; border-radius: 6px; background: transparent;
+  color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center;
+  justify-content: center; font-size: 14px; transition: all .15s;
+}
+.action-btn:hover { background: var(--primary-soft); color: var(--primary); }
+.action-btn.del:hover { background: var(--red-soft); color: var(--red); }
+
+.pagination {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 8px;
+}
+.pag-info { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 8px; }
+.pag-buttons { display: flex; gap: 4px; }
+.pag-btn {
+  min-width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--bg-elevated);
+  color: var(--text-muted); font-size: 12px; cursor: pointer; font-family: inherit;
+  font-variant-numeric: tabular-nums; transition: all .15s;
+}
+.pag-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+.pag-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.pag-btn:disabled { opacity: .35; cursor: default; }
+.per-page {
+  padding: 4px 24px 4px 8px; border: 1px solid var(--border); border-radius: 6px;
+  font-size: 12px; background: var(--bg); color: var(--text-muted); font-family: inherit;
+  appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236b7280' d='M2.5 3.75L5 6.25L7.5 3.75'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 6px center; cursor: pointer;
+}
+
+.charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.chart-card { padding: 20px; }
+.chart-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+.bar-chart { display: flex; flex-direction: column; gap: 6px; }
+.bar-row { display: flex; align-items: center; gap: 8px; }
+.bar-label { width: 120px; font-size: 12px; color: var(--text-muted); text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex-shrink: 0; }
+.bar-track { flex: 1; height: 20px; background: var(--bg); border-radius: 4px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 4px; transition: width .5s ease; }
+.bar-fill-primary { background: var(--primary); }
+.bar-fill-amber { background: var(--amber); }
+.bar-fill-green { background: var(--green); }
+.bar-value { width: 40px; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-muted); flex-shrink: 0; }
+.color-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.color-chip { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 20px; font-size: 12px; background: var(--bg); border: 1px solid var(--border); font-weight: 500; }
+.color-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--border); flex-shrink: 0; }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: var(--overlay); z-index: 100;
+  display: flex; align-items: flex-start; justify-content: center; padding: 60px 16px;
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: auto; }
+.modal-box {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius);
+  width: 100%; max-width: 500px; box-shadow: var(--shadow-lg);
+  transform: translateY(12px); transition: transform .2s; max-height: 80vh; overflow-y: auto;
+}
+.modal-overlay.open .modal-box { transform: translateY(0); }
+.modal-head { padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.modal-head h2 { font-size: 16px; font-weight: 700; }
+.modal-head .close-btn { width: 28px; height: 28px; border: none; background: none; color: var(--text-muted); cursor: pointer; border-radius: 6px; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+.modal-head .close-btn:hover { background: var(--bg); color: var(--text); }
+.modal-body { padding: 20px; }
+.modal-foot { padding: 12px 20px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; }
+.form-group input {
+  width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 14px; background: var(--bg); color: var(--text); font-family: inherit; transition: border-color .15s;
+}
+.form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.form-group { position: relative; }
+.fselect { position: relative; }
+.fselect-btn {
+  width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  font-size: 14px; background: var(--bg); color: var(--text); cursor: pointer;
+  text-align: left; font-family: inherit; transition: border-color .15s;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.fselect-btn::after { content: '\25BE'; font-size: 11px; color: var(--text-muted); }
+.fselect-btn:hover { border-color: var(--text-muted); }
+.fselect-btn:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+.fselect-btn.has-value { color: var(--text); font-weight: 500; }
+.fselect-drop {
+  position: absolute; top: calc(100% + 2px); left: 0; right: 0; z-index: 120;
+  max-height: 220px; overflow-y: auto; background: var(--bg-elevated);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg); display: none; padding: 4px;
+}
+.fselect-drop.open { display: block; }
+.fselect-search {
+  width: calc(100% - 8px); margin: 4px; padding: 7px 10px;
+  border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
+  background: var(--bg); color: var(--text); font-family: inherit;
+}
+.fselect-search:focus { outline: none; border-color: var(--primary); }
+.fselect-opts { max-height: 160px; overflow-y: auto; }
+.fselect-item {
+  padding: 7px 10px; border-radius: 6px; font-size: 13px; cursor: pointer;
+  transition: background .1s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.fselect-item:hover { background: var(--primary-soft); color: var(--primary); }
+.fselect-item.selected { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+.fselect-item.new-val { color: var(--green); font-style: italic; }
+
+.ac-list {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 110;
+  max-height: 180px; overflow-y: auto; background: var(--bg-elevated);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg); display: none; margin-top: 2px;
+}
+.ac-list.open { display: block; }
+.ac-item {
+  padding: 7px 12px; font-size: 13px; cursor: pointer;
+  transition: background .1s; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ac-item:hover, .ac-item.ac-active { background: var(--primary-soft); color: var(--primary); }
+.ac-item mark { background: none; color: var(--primary); font-weight: 700; }
+
+.toast-wrap { position: fixed; bottom: 20px; right: 20px; z-index: 200; display: flex; flex-direction: column; gap: 6px; }
+.toast { padding: 10px 16px; background: var(--bg-elevated); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: var(--radius-sm); font-size: 13px; box-shadow: var(--shadow-lg); animation: toastIn .25s ease; }
+@keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+.empty-state { text-align: center; padding: 40px 16px; color: var(--text-muted); }
+.empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+.loading-spinner {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 60px; gap: 12px; color: var(--text-muted);
+}
+.spinner { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--primary); animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-add-mobile { display: none; }
+@media (max-width: 768px) {
+  header { padding: 10px 14px; }
+  header .logo { font-size: 15px; gap: 7px; }
+  header .logo .ball { width: 24px; height: 24px; }
+  .container { padding: 10px 8px 80px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .stat-item { padding: 12px 14px; border-right: none; border-bottom: 1px solid var(--border); }
+  .stat-item:nth-last-child(-n+2) { border-bottom: none; }
+  .stat-value { font-size: 20px; }
+  .tabs { gap: 0; }
+  .tab-btn { padding: 10px 14px; font-size: 13px; flex: 1; text-align: center; }
+  .filters-panel { flex-direction: column; align-items: stretch; padding: 10px; gap: 6px; }
+  .search-wrap { min-width: auto; }
+  .search-wrap input { font-size: 16px; padding: 11px 12px 11px 36px; }
+  .iselect-btn { padding: 11px 12px; font-size: 14px; }
+  .iselect-drop { min-width: 100%; max-height: 260px; }
+  .iselect-opt { padding: 10px 12px; font-size: 14px; }
+  .reset-btn { padding: 10px 12px; font-size: 14px; text-align: center; }
+  .charts-grid { grid-template-columns: 1fr; }
+  .bar-label { width: 70px; font-size: 11px; }
+  .bar-value { width: 35px; font-size: 11px; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 6px; }
+  th { font-size: 10px; }
+  .hide-m { display: none; }
+  .cell-marque { max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  td:nth-child(2) { max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .num-badge { width: 28px; height: 28px; min-width: 28px; font-size: 12px; }
+  .action-btn { width: 36px; height: 36px; font-size: 16px; }
+  .table-header { padding: 10px 12px; }
+  .pagination { padding: 10px 12px; flex-direction: column; align-items: center; gap: 10px; }
+  .pag-btn { min-width: 36px; height: 36px; font-size: 13px; }
+
+  .modal-overlay { padding: 0; align-items: stretch; }
+  .modal-box { max-width: 100%; border-radius: 0; max-height: 100vh; height: 100vh; }
+  .modal-body { padding: 16px; }
+  .form-group label { font-size: 13px; margin-bottom: 6px; }
+  .fselect-btn { padding: 12px; font-size: 15px; }
+  .fselect-drop { max-height: 200px; }
+  .fselect-search { padding: 10px 12px; font-size: 15px; }
+  .fselect-item { padding: 11px 12px; font-size: 15px; }
+  .fselect-opts { max-height: 150px; }
+  .form-group input { padding: 12px; font-size: 15px; }
+  .modal-foot { padding: 12px 16px; flex-wrap: wrap; }
+  .modal-foot .btn { flex: 1; justify-content: center; padding: 12px 10px; font-size: 14px; }
+
+  .btn-add-mobile {
+    position: fixed; bottom: 16px; left: 16px; right: 16px; z-index: 40;
+    padding: 14px; font-size: 16px; font-weight: 700;
+    border-radius: var(--radius); box-shadow: var(--shadow-lg);
+    display: flex;
+  }
+  .header-actions .btn-primary { display: none; }
+
+  .color-chip { padding: 4px 8px; font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><div class="ball"></div>Golf Ball <span>Manager</span></div>
+  <div class="header-actions">
+    <button class="btn-icon" onclick="toggleDark()" title="Changer de theme" id="themeBtn">&#127769;</button>
+    <button class="btn btn-primary" onclick="openAdd()" style="padding:10px 40px;font-size:15px;font-weight:700;letter-spacing:.03em">+ Ajouter</button>
+  </div>
+</header>
+
+<div class="container">
+  <div class="panel stats-grid" id="statsRow"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="collection" onclick="switchTab('collection')">Collection</button>
+    <button class="tab-btn" data-tab="stats" onclick="switchTab('stats')">Statistiques</button>
+  </div>
+
+  <div class="panel filters-panel">
+    <div class="search-wrap">
+      <span class="search-icon">&#128270;</span>
+      <input type="search" id="searchInput" placeholder="Rechercher (marque, modele, partenaire...)" oninput="debouncedFilter()">
+    </div>
+    <div class="iselect" id="isMarque"><button class="iselect-btn" onclick="toggleDrop('isMarque')">Toutes marques</button><div class="iselect-drop"><input class="iselect-search" placeholder="Rechercher..." oninput="filterDropdown(this,'isMarque')"><div class="iselect-opts"></div></div></div>
+    <div class="iselect" id="isModele"><button class="iselect-btn" onclick="toggleDrop('isModele')">Tous modeles</button><div class="iselect-drop"><input class="iselect-search" placeholder="Rechercher..." oninput="filterDropdown(this,'isModele')"><div class="iselect-opts"></div></div></div>
+    <div class="iselect" id="isCouleur"><button class="iselect-btn" onclick="toggleDrop('isCouleur')">Toutes couleurs</button><div class="iselect-drop"><input class="iselect-search" placeholder="Rechercher..." oninput="filterDropdown(this,'isCouleur')"><div class="iselect-opts"></div></div></div>
+    <div class="iselect" id="isPartenaire"><button class="iselect-btn" onclick="toggleDrop('isPartenaire')">Tous partenaires</button><div class="iselect-drop"><input class="iselect-search" placeholder="Rechercher..." oninput="filterDropdown(this,'isPartenaire')"><div class="iselect-opts"></div></div></div>
+    <button class="reset-btn" onclick="resetFilters()">&#10005; Reinitialiser</button>
+  </div>
+
+  <div id="collectionTab">
+    <div class="panel table-panel">
+      <div class="table-header">
+        <div class="table-title">L'inventaire des balles <span class="count" id="tableCount">0</span></div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr>
+            <th>Marque</th>
+            <th>Modele</th>
+            <th style="text-align:center">N&#176;</th>
+            <th>Couleur</th>
+            <th class="hide-m">Partenaire</th>
+            <th class="hide-m">Lien</th>
+            <th style="text-align:right">Actions</th>
+          </tr></thead>
+          <tbody id="tbody">
+            <tr><td colspan="7"><div class="loading-spinner"><div class="spinner"></div>Chargement depuis Firebase...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+
+  <div id="statsTab" style="display:none"></div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal-box">
+    <div class="modal-head"><h2 id="modalTitle">Ajouter une balle</h2><button class="close-btn" onclick="closeModal()">&#10005;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editId">
+      <div class="form-group"><label>Marque</label><div class="fselect" id="fsMarque" data-field="marque"><input type="hidden" id="fMarque"><button type="button" class="fselect-btn" onclick="toggleFs('fsMarque')">Choisir une marque</button><div class="fselect-drop"><input class="fselect-search" placeholder="Rechercher..." oninput="filterFs('fsMarque',this.value)"><div class="fselect-opts"></div></div></div></div>
+      <div class="form-group"><label>Modele</label><div class="fselect" id="fsModele" data-field="modele"><input type="hidden" id="fModele"><button type="button" class="fselect-btn" onclick="toggleFs('fsModele')">Choisir un modele</button><div class="fselect-drop"><input class="fselect-search" placeholder="Rechercher..." oninput="filterFs('fsModele',this.value)"><div class="fselect-opts"></div></div></div></div>
+      <div class="form-group"><label>Numero</label><input type="text" id="fNumero" placeholder="Ex: 1"></div>
+      <div class="form-group"><label>Couleur</label><div class="fselect" id="fsCouleur" data-field="couleur"><input type="hidden" id="fCouleur"><button type="button" class="fselect-btn" onclick="toggleFs('fsCouleur')">Choisir une couleur</button><div class="fselect-drop"><input class="fselect-search" placeholder="Rechercher..." oninput="filterFs('fsCouleur',this.value)"><div class="fselect-opts"></div></div></div></div>
+      <div class="form-group"><label>Partenaire</label><div class="fselect" id="fsPartenaire" data-field="partenaire"><input type="hidden" id="fPartenaire"><button type="button" class="fselect-btn" onclick="toggleFs('fsPartenaire')">Choisir un partenaire</button><div class="fselect-drop"><input class="fselect-search" placeholder="Rechercher..." oninput="filterFs('fsPartenaire',this.value)"><div class="fselect-opts"></div></div></div></div>
+      <div class="form-group"><label>Lien Google Partenaire</label><input type="url" id="fLien" placeholder="https://..."></div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Annuler</button><button class="btn btn-primary" onclick="saveBall(true)" style="background:var(--green);border-color:var(--green)">Enregistrer + Suivante</button><button class="btn btn-primary" onclick="saveBall(false)">Enregistrer</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head"><h2>Confirmer</h2><button class="close-btn" onclick="closeConfirm()">&#10005;</button></div>
+    <div class="modal-body"><p id="confirmText" style="font-size:14px;line-height:1.6"></p></div>
+    <div class="modal-foot"><button class="btn" onclick="closeConfirm()">Annuler</button><button class="btn btn-danger" onclick="confirmDelete()">&#128465; Supprimer</button></div>
+  </div>
+</div>
+
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.0.0</footer>
+
+<button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyBUMaIhNbepkBj4RXQrA-WRcrMmlZ8rXfk",
+  authDomain: "balles-de-golf-6edb7.firebaseapp.com",
+  projectId: "balles-de-golf-6edb7",
+  storageBucket: "balles-de-golf-6edb7.firebasestorage.app",
+  messagingSenderId: "584339478598",
+  appId: "1:584339478598:web:38a22c5f9eead0263fd247"
+});
+var db = firebase.firestore();
+
+var allData = [];
+var filtered = [];
+var currentPage = 1;
+var perPage = 25;
+var sortCol = 'marque';
+var sortDir = 1;
+var deleteTarget = null;
+
+var COLOR_MAP = {
+  'Blanc':'#f0efe8','Jaune':'#f0d000','Orange':'#e87800',
+  'Rouge':'#cc2222','Bleu':'#2266cc','Vert':'#228844',
+  'Rose':'#e06090','Noir':'#222','Violet':'#7733aa','Marron':'#8B5E3C'
+};
+
+function toggleDark() {
+  document.body.classList.toggle('dark');
+  var d = document.body.classList.contains('dark');
+  localStorage.setItem('golf_dark', d ? '1' : '0');
+  document.getElementById('themeBtn').innerHTML = d ? '&#9728;&#65039;' : '&#127769;';
+}
+
+function init() {
+  if (localStorage.getItem('golf_dark') === '1') {
+    document.body.classList.add('dark');
+    document.getElementById('themeBtn').innerHTML = '&#9728;&#65039;';
+  }
+  var cached = localStorage.getItem('golf_cache');
+  if (cached) {
+    try {
+      allData = JSON.parse(cached);
+      setSyncStatus('online', allData.length.toLocaleString('fr') + ' balles (cache)');
+      populateFilters();
+      buildAcSources();
+      applyFilters();
+      renderStats();
+    } catch(e) {}
+  } else {
+    setSyncStatus('loading', 'Chargement...');
+  }
+
+  setupAc();
+
+  db.collection('balles').get().then(function(snapshot) {
+    allData = [];
+    snapshot.forEach(function(doc) {
+      var d = doc.data();
+      allData.push({ id: doc.id, marque: d.marque || '', modele: d.modele || '', numero: d.numero || '', couleur: d.couleur || '', partenaire: d.partenaire || '', lien: d.lien || '' });
+    });
+    try { localStorage.setItem('golf_cache', JSON.stringify(allData)); } catch(e) {}
+    setSyncStatus('online', allData.length.toLocaleString('fr') + ' balles');
+    populateFilters();
+    buildAcSources();
+    applyFilters();
+    renderStats();
+  }).catch(function(err) {
+    if (!allData.length) {
+      setSyncStatus('offline', 'Hors ligne');
+      toast('Erreur de connexion Firebase');
+    }
+    console.error('Firestore error:', err);
+  });
+}
+
+function setSyncStatus(state, text) {}
+
+function reloadData(){
+  db.collection('balles').get().then(function(snapshot){
+    allData=[];
+    snapshot.forEach(function(doc){var d=doc.data();allData.push({id:doc.id,marque:d.marque||'',modele:d.modele||'',numero:d.numero||'',couleur:d.couleur||'',partenaire:d.partenaire||'',lien:d.lien||''});});
+    try{localStorage.setItem('golf_cache',JSON.stringify(allData));}catch(e){}
+    setSyncStatus('online',allData.length.toLocaleString('fr')+' balles');
+    populateFilters();buildAcSources();applyFilters();renderStats();
+  });
+}
+
+function populateFilters() {
+  var marques = unique(allData.map(function(b){return b.marque;})).sort();
+  var couleurs = unique(allData.map(function(b){return b.couleur;})).sort();
+  var partenaires = unique(allData.filter(function(b){return b.partenaire && b.partenaire!=='Non';}).map(function(b){return b.partenaire;})).sort();
+  buildDrop('isMarque','Toutes marques',marques);
+  var modeles = unique(allData.map(function(b){return b.modele;})).sort();
+  buildDrop('isModele','Tous modeles',modeles);
+  buildDrop('isCouleur','Toutes couleurs',couleurs);
+  buildDrop('isPartenaire','Tous partenaires',['Non'].concat(partenaires));
+}
+function unique(arr){var s=new Set();var r=[];arr.forEach(function(v){if(v&&!s.has(v)){s.add(v);r.push(v);}});return r;}
+
+var acSources={};
+function buildAcSources(){
+  acSources.marque=unique(allData.map(function(b){return b.marque;})).sort();
+  acSources.modele=unique(allData.map(function(b){return b.modele;})).sort();
+  acSources.couleur=unique(allData.map(function(b){return b.couleur;})).sort();
+  var p=unique(allData.filter(function(b){return b.partenaire&&b.partenaire!=='Non';}).map(function(b){return b.partenaire;})).sort();
+  acSources.partenaire=['Non'].concat(p);
+}
+function getAcContextual(key){
+  var fm=document.getElementById('fMarque').value.trim();
+  var fmo=document.getElementById('fModele').value.trim();
+  var fc=document.getElementById('fCouleur').value.trim();
+  var fp=document.getElementById('fPartenaire').value.trim();
+  var pool=allData;
+  if(key!=='marque'&&fm)pool=pool.filter(function(b){return b.marque===fm;});
+  if(key!=='modele'&&fmo)pool=pool.filter(function(b){return b.modele===fmo;});
+  if(key!=='couleur'&&fc)pool=pool.filter(function(b){return b.couleur===fc;});
+  if(key!=='partenaire'&&fp)pool=pool.filter(function(b){return b.partenaire===fp;});
+  return unique(pool.map(function(b){return b[key];})).sort();
+}
+var acActive=-1;
+function setupAc(){
+  var inputs=document.querySelectorAll('[data-ac]');
+  inputs.forEach(function(input){
+    var key=input.dataset.ac;
+    var list=input.nextElementSibling;
+    input.addEventListener('input',function(){
+      var val=input.value.trim().toLowerCase();
+      if(!val){list.classList.remove('open');return;}
+      var src=getAcContextual(key);
+      var results=[];
+      src.forEach(function(item){
+        if(item.toLowerCase().indexOf(val)===0)results.push(item);
+      });
+      results=results.slice(0,15);
+      if(!results.length){list.classList.remove('open');return;}
+      acActive=-1;
+      list.innerHTML=results.map(function(r){
+        var idx=r.toLowerCase().indexOf(val);
+        var hl=esc(r.substring(0,idx))+'<mark>'+esc(r.substring(idx,idx+val.length))+'</mark>'+esc(r.substring(idx+val.length));
+        return '<div class="ac-item">'+hl+'</div>';
+      }).join('');
+      list.classList.add('open');
+    });
+    input.addEventListener('keydown',function(e){
+      var items=list.querySelectorAll('.ac-item');
+      if(!items.length||!list.classList.contains('open'))return;
+      if(e.key==='ArrowDown'){e.preventDefault();acActive=Math.min(acActive+1,items.length-1);updateAcActive(items);}
+      else if(e.key==='ArrowUp'){e.preventDefault();acActive=Math.max(acActive-1,0);updateAcActive(items);}
+      else if(e.key==='Enter'&&acActive>=0){e.preventDefault();input.value=items[acActive].textContent;list.classList.remove('open');}
+      else if(e.key==='Escape'){list.classList.remove('open');}
+    });
+    input.addEventListener('blur',function(){setTimeout(function(){list.classList.remove('open');},150);});
+    list.addEventListener('mousedown',function(e){
+      var item=e.target.closest('.ac-item');
+      if(item){input.value=item.textContent;list.classList.remove('open');}
+    });
+  });
+}
+function updateAcActive(items){
+  items.forEach(function(el,i){el.classList.toggle('ac-active',i===acActive);});
+  if(acActive>=0&&items[acActive])items[acActive].scrollIntoView({block:'nearest'});
+}
+
+var fsLabels={fsMarque:'Choisir une marque',fsModele:'Choisir un modele',fsCouleur:'Choisir une couleur',fsPartenaire:'Choisir un partenaire'};
+var fsFieldMap={fsMarque:'fMarque',fsModele:'fModele',fsCouleur:'fCouleur',fsPartenaire:'fPartenaire'};
+var fsKeyMap={fsMarque:'marque',fsModele:'modele',fsCouleur:'couleur',fsPartenaire:'partenaire'};
+
+function getFsContextual(key){
+  var fm=document.getElementById('fMarque').value.trim();
+  var fmo=document.getElementById('fModele').value.trim();
+  var fc=document.getElementById('fCouleur').value.trim();
+  var fp=document.getElementById('fPartenaire').value.trim();
+  var pool=allData;
+  if(key!=='marque'&&fm)pool=pool.filter(function(b){return b.marque===fm;});
+  if(key!=='modele'&&fmo)pool=pool.filter(function(b){return b.modele===fmo;});
+  if(key!=='couleur'&&fc)pool=pool.filter(function(b){return b.couleur===fc;});
+  if(key!=='partenaire'&&fp)pool=pool.filter(function(b){return b.partenaire===fp;});
+  var counts={};
+  pool.forEach(function(b){var v=b[key];if(v)counts[v]=(counts[v]||0)+1;});
+  return Object.keys(counts).sort(function(a,b){return counts[b]-counts[a];});
+}
+
+function toggleFs(id){
+  var el=document.getElementById(id);
+  var drop=el.querySelector('.fselect-drop');
+  document.querySelectorAll('.fselect-drop.open').forEach(function(d){if(d!==drop)d.classList.remove('open');});
+  drop.classList.toggle('open');
+  if(drop.classList.contains('open')){
+    var si=drop.querySelector('.fselect-search');si.value='';si.focus();
+    renderFsOpts(id,'');
+  }
+}
+
+function filterFs(id,val){renderFsOpts(id,val);}
+
+function renderFsOpts(id,filter){
+  var key=fsKeyMap[id];
+  var curVal=document.getElementById(fsFieldMap[id]).value;
+  var src=getFsContextual(key);
+  var f=(filter||'').toLowerCase();
+  var matched=src.filter(function(item){return !f||item.toLowerCase().indexOf(f)===0;});
+  var limited=matched.slice(0,50);
+  var html=limited.map(function(item){
+    return '<div class="fselect-item'+(item===curVal?' selected':'')+'" data-fs="'+id+'" data-val="'+esc(item)+'">'+esc(item)+'</div>';
+  }).join('');
+  if(f&&matched.length===0){
+    html='<div class="fselect-item new-val" data-fs="'+id+'" data-val="'+esc(filter)+'">+ Ajouter "'+esc(filter)+'"</div>';
+  }
+  if(matched.length>50)html+='<div style="padding:6px 10px;font-size:11px;color:var(--text-muted);text-align:center">Tapez pour affiner</div>';
+  document.querySelector('#'+id+' .fselect-opts').innerHTML=html;
+}
+
+function selectFs(id,val){
+  document.getElementById(fsFieldMap[id]).value=val;
+  var btn=document.querySelector('#'+id+' .fselect-btn');
+  btn.textContent=val||fsLabels[id];
+  btn.classList.toggle('has-value',!!val);
+  document.querySelector('#'+id+' .fselect-drop').classList.remove('open');
+}
+
+document.addEventListener('click',function(e){
+  var item=e.target.closest('.fselect-item');
+  if(item&&item.dataset.fs){selectFs(item.dataset.fs,item.dataset.val);return;}
+  if(!e.target.closest('.fselect'))document.querySelectorAll('.fselect-drop.open').forEach(function(d){d.classList.remove('open');});
+});
+
+var dropState={};
+function buildDrop(id,label,items){
+  dropState[id]={label:label,items:items,value:(dropState[id]&&dropState[id].value)||''};
+}
+function renderDropOpts(id,filter){
+  filter=filter||'';
+  var s=dropState[id];var opts=document.querySelector('#'+id+' .iselect-opts');
+  var f=filter.toLowerCase();
+  var list=[{v:'',t:s.label}].concat(s.items.map(function(i){return{v:i,t:i};}));
+  var matched=list.filter(function(x){return!f||x.t.toLowerCase().indexOf(f)>=0;});
+  var limited=matched.slice(0,80);
+  var html=limited.map(function(x){return '<div class="iselect-opt '+(x.v===s.value?'selected':'')+'" data-drop="'+id+'" data-val="'+esc(x.v)+'">'+esc(x.t)+'</div>';}).join('');
+  if(matched.length>80)html+='<div style="padding:6px 10px;font-size:11px;color:var(--text-muted);text-align:center">Tapez pour affiner ('+(matched.length-80)+' de plus)</div>';
+  opts.innerHTML=html;
+}
+function toggleDrop(id){
+  var drop=document.querySelector('#'+id+' .iselect-drop');
+  document.querySelectorAll('.iselect-drop.open').forEach(function(d){if(d!==drop)d.classList.remove('open');});
+  drop.classList.toggle('open');
+  if(drop.classList.contains('open')){var si=drop.querySelector('.iselect-search');if(si){si.value='';si.focus();}renderDropOpts(id);}
+}
+function filterDropdown(input,id){renderDropOpts(id,input.value);}
+function selectDrop(id,val){
+  dropState[id].value=val;
+  var btn=document.querySelector('#'+id+' .iselect-btn');
+  btn.textContent=val||dropState[id].label;btn.classList.toggle('active',!!val);
+  document.querySelector('#'+id+' .iselect-drop').classList.remove('open');applyFilters();
+}
+document.addEventListener('click',function(e){
+  var opt=e.target.closest('.iselect-opt');
+  if(opt&&opt.dataset.drop){selectDrop(opt.dataset.drop,opt.dataset.val);return;}
+  if(!e.target.closest('.iselect'))document.querySelectorAll('.iselect-drop.open').forEach(function(d){d.classList.remove('open');});
+});
+
+function getFilterValues(){
+  return {
+    q:document.getElementById('searchInput').value.toLowerCase().trim(),
+    fm:(dropState.isMarque&&dropState.isMarque.value)||'',
+    fmo:(dropState.isModele&&dropState.isModele.value)||'',
+    fc:(dropState.isCouleur&&dropState.isCouleur.value)||'',
+    fp:(dropState.isPartenaire&&dropState.isPartenaire.value)||''
+  };
+}
+function filterData(skip){
+  var f=getFilterValues();
+  return allData.filter(function(b){
+    if(skip!=='fm'&&f.fm&&b.marque!==f.fm)return false;
+    if(skip!=='fmo'&&f.fmo&&b.modele!==f.fmo)return false;
+    if(skip!=='fc'&&f.fc&&b.couleur!==f.fc)return false;
+    if(skip!=='fp'&&f.fp&&b.partenaire!==f.fp)return false;
+    if(f.q){return(b.marque+' '+b.modele+' '+b.numero+' '+b.couleur+' '+b.partenaire).toLowerCase().indexOf(f.q)>=0;}
+    return true;
+  });
+}
+function updateDropdownOptions(){
+  var forMarque=filterData('fm');
+  var forModele=filterData('fmo');
+  var forCouleur=filterData('fc');
+  var forPartner=filterData('fp');
+  dropState.isMarque.items=unique(forMarque.map(function(b){return b.marque;})).sort();
+  dropState.isModele.items=unique(forModele.map(function(b){return b.modele;})).sort();
+  dropState.isCouleur.items=unique(forCouleur.map(function(b){return b.couleur;})).sort();
+  var p=unique(forPartner.filter(function(b){return b.partenaire&&b.partenaire!=='Non';}).map(function(b){return b.partenaire;})).sort();
+  dropState.isPartenaire.items=['Non'].concat(p);
+}
+function applyFilters(){
+  filtered=filterData();
+  updateDropdownOptions();
+  sortData();currentPage=1;renderTable();renderStats();
+  if(document.getElementById('statsTab').style.display!=='none')renderStatsTab();
+}
+var dTimer;function debouncedFilter(){clearTimeout(dTimer);dTimer=setTimeout(applyFilters,200);}
+function resetFilters(){document.getElementById('searchInput').value='';['isMarque','isModele','isCouleur','isPartenaire'].forEach(function(id){selectDrop(id,'');});applyFilters();}
+
+function sortBy(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}sortData();renderTable();}
+function sortData(){
+  filtered.sort(function(a,b){
+    var va=(a[sortCol]||'').toString().toLowerCase();var vb=(b[sortCol]||'').toString().toLowerCase();
+    if(sortCol==='numero'){va=parseFloat(va)||0;vb=parseFloat(vb)||0;return(va-vb)*sortDir;}
+    return va.localeCompare(vb,'fr')*sortDir;
+  });
+}
+
+function renderTable(){
+  var tbody=document.getElementById('tbody');var start=(currentPage-1)*perPage;var page=filtered.slice(start,start+perPage);
+  document.querySelectorAll('th').forEach(function(th){th.classList.remove('sorted');});
+  document.querySelectorAll('th .arrow').forEach(function(el){el.textContent='';});
+  var th=document.getElementById('th-'+sortCol);
+  if(th){th.classList.add('sorted');th.querySelector('.arrow').textContent=sortDir===1?'\u25B2':'\u25BC';}
+  document.getElementById('tableCount').textContent=filtered.length.toLocaleString('fr');
+  if(!page.length){
+    tbody.innerHTML='<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">\u26F3</div><p>Aucune balle trouvee</p></div></td></tr>';
+  } else {
+    tbody.innerHTML=page.map(function(b){
+      var hasP=b.partenaire&&b.partenaire!=='Non';var cd=getColorDot(b.couleur);
+      return '<tr>'+
+        '<td class="cell-marque">'+esc(b.marque)+'</td><td>'+esc(b.modele)+'</td>'+
+        '<td class="col-num">'+(b.numero?'<span class="num-badge'+(String(b.numero).length>2?' wide':'')+'">'+esc(b.numero)+'</span>':'')+'</td><td>'+cd+esc(b.couleur)+'</td>'+
+        '<td class="hide-m">'+(hasP?'<span class="badge badge-partner">'+esc(b.partenaire)+'</span>':'<span style="color:var(--text-muted)">\u2014</span>')+'</td>'+
+        '<td class="hide-m">'+(b.lien?'<a class="link-ext" href="'+esc(b.lien)+'" target="_blank" rel="noopener">\uD83D\uDD17</a>':'')+'</td>'+
+        '<td class="col-actions">'+
+          '<button class="action-btn" title="Modifier" onclick="openEdit(\''+b.id+'\')">\u270F\uFE0F</button>'+
+          '<button class="action-btn del" title="Supprimer" onclick="openConfirm(\''+b.id+'\')">\uD83D\uDDD1\uFE0F</button>'+
+        '</td></tr>';
+    }).join('');
+  }
+
+  renderPagination();
+}
+
+var CMAP={
+  'blanc':'#f0efe8','jaune':'#f0d000','orange':'#e87800','rouge':'#cc2222',
+  'bleu':'#2266cc','vert':'#228844','rose':'#e06090','noir':'#222',
+  'violet':'#7733aa','marron':'#8B5E3C','gris':'#999','grises':'#999',
+  'fushia':'#e0208a','bordeau':'#6b1030','blanche':'#f0efe8','verte':'#228844',
+  'noirs':'#222','noires':'#222','rouges':'#cc2222','bleues':'#2266cc',
+  'bleus':'#2266cc','oranges':'#e87800','violettes':'#7733aa','violets':'#7733aa',
+  'verts':'#228844','vertes':'#228844','pale':'#f5c6d0','argenté':'#c0c0c0',
+  'foncé':'#1a3a6b','foncée':'#1a3a6b','fonce':'#1a3a6b'
+};
+function resolveColor(str){
+  if(!str)return null;
+  var parts=str.toLowerCase().trim().split(/\s+/);
+  for(var i=parts.length-1;i>=0;i--){if(CMAP[parts[i]])return CMAP[parts[i]];}
+  if(str.toLowerCase().indexOf('bleu fonce')>=0||str.toLowerCase().indexOf('bleu foncé')>=0)return '#1a3a6b';
+  if(str.toLowerCase().indexOf('rose pale')>=0)return '#f5c6d0';
+  if(str.toLowerCase().indexOf('rose fushia')>=0)return '#e0208a';
+  return null;
+}
+function getColorDot(c){
+  if(!c||c==='NR')return '';
+  var low=c.toLowerCase();
+  var plusIdx=c.indexOf('+');
+  var baseStr=plusIdx>=0?c.substring(0,plusIdx).trim():c.trim();
+  var baseCol=resolveColor(baseStr)||'#f0efe8';
+  if(plusIdx<0){
+    return '<svg width="22" height="22" viewBox="0 0 22 22" style="vertical-align:middle;margin-right:6px"><circle cx="11" cy="11" r="10" fill="'+baseCol+'" stroke="#ccc" stroke-width="0.5"/><ellipse cx="8" cy="8" rx="4" ry="3" fill="rgba(255,255,255,0.3)" transform="rotate(-30 8 8)"/></svg>';
+  }
+  var detail=c.substring(plusIdx+1).trim().toLowerCase();
+  var colors=detail.match(/[a-zéèêëàùûüôîïç]+/gi)||[];
+  var c1=null,c2=null;
+  var keywords=['bande','bandes','point','points','triangle','triangles','pentagone','pentagones','carrés','carres','peinture','pointillés','pointilles','etoiles','trefles','feuilles','drapeau','drapeaux','et','de','dapeaux','clignotant','bouclier'];
+  var colorWords=colors.filter(function(w){return keywords.indexOf(w)<0;});
+  if(colorWords.length>=1)c1=resolveColor(colorWords.slice(0,Math.min(2,colorWords.length)).join(' '))||resolveColor(colorWords[0]);
+  if(colorWords.length>=2&&!c1)c1=resolveColor(colorWords[0]);
+  if(colorWords.length>=2){var last=colorWords.length>=3?resolveColor(colorWords.slice(-2).join(' '))||resolveColor(colorWords[colorWords.length-1]):resolveColor(colorWords[colorWords.length-1]);if(last&&last!==c1)c2=last;}
+  if(!c1)c1='#888';
+  var uid='cl'+Math.random().toString(36).substr(2,5);
+  if(detail.indexOf('bande')>=0){
+    return buildBallSvg(baseCol,uid,function(){
+      var r='<rect x="0" y="8.5" width="22" height="5" fill="'+c1+'" clip-path="url(#'+uid+')"/>';
+      if(c2)r='<rect x="0" y="6" width="22" height="3.5" fill="'+c1+'" clip-path="url(#'+uid+')"/><rect x="0" y="12.5" width="22" height="3.5" fill="'+c2+'" clip-path="url(#'+uid+')"/>';
+      return r;
+    });
+  }
+  if(detail.indexOf('point')>=0||detail.indexOf('pointill')>=0){
+    return buildBallSvg(baseCol,uid,function(){
+      var dots='';var col=c1;
+      [[6,7],[11,5],[16,8],[8,13],[14,14],[11,10]].forEach(function(p){
+        dots+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="1.3" fill="'+col+'" clip-path="url(#'+uid+')"/>';
+      });
+      if(c2){[[9,10],[15,11],[7,16]].forEach(function(p){dots+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r="1.3" fill="'+c2+'" clip-path="url(#'+uid+')"/>';});}
+      return dots;
+    });
+  }
+  if(detail.indexOf('triangle')>=0){
+    return buildBallSvg(baseCol,uid,function(){
+      var t='';var col=c1;
+      t+='<polygon points="7,6 11,3 9,8" fill="'+col+'" clip-path="url(#'+uid+')"/>';
+      t+='<polygon points="13,9 17,7 15,12" fill="'+(c2||col)+'" clip-path="url(#'+uid+')"/>';
+      t+='<polygon points="8,14 12,11 10,16" fill="'+col+'" clip-path="url(#'+uid+')"/>';
+      return t;
+    });
+  }
+  if(detail.indexOf('pentagone')>=0){
+    return buildBallSvg(baseCol,uid,function(){
+      var p='';
+      p+='<polygon points="11,4 13.5,5.5 12.8,8.3 9.2,8.3 8.5,5.5" fill="'+c1+'" clip-path="url(#'+uid+')"/>';
+      if(c2)p+='<polygon points="11,12 13.5,13.5 12.8,16.3 9.2,16.3 8.5,13.5" fill="'+c2+'" clip-path="url(#'+uid+')"/>';
+      return p;
+    });
+  }
+  if(detail.indexOf('carré')>=0||detail.indexOf('carre')>=0){
+    return buildBallSvg(baseCol,uid,function(){
+      var s='<rect x="5" y="5" width="5" height="5" fill="'+c1+'" clip-path="url(#'+uid+')"/>';
+      s+='<rect x="12" y="12" width="5" height="5" fill="'+(c2||c1)+'" clip-path="url(#'+uid+')"/>';
+      return s;
+    });
+  }
+  if(detail.indexOf('etoile')>=0){
+    return buildBallSvg(baseCol,uid,function(){
+      return '<polygon points="11,4 12.5,8.5 17,9 13.5,12 14.5,16.5 11,14 7.5,16.5 8.5,12 5,9 9.5,8.5" fill="'+c1+'" clip-path="url(#'+uid+')"/>';
+    });
+  }
+  if(detail.indexOf('peinture')>=0||detail.indexOf('trefle')>=0||detail.indexOf('feuille')>=0||detail.indexOf('drapeau')>=0||detail.indexOf('dapeaux')>=0){
+    return buildBallSvg(baseCol,uid,function(){
+      var s='<circle cx="8" cy="11" r="3" fill="'+c1+'" opacity="0.7" clip-path="url(#'+uid+')"/>';
+      if(c2)s+='<circle cx="14" cy="11" r="3" fill="'+c2+'" opacity="0.7" clip-path="url(#'+uid+')"/>';
+      return s;
+    });
+  }
+  return buildBallSvg(baseCol,uid,function(){
+    if(c1)return '<circle cx="14" cy="11" r="4" fill="'+c1+'" opacity="0.6" clip-path="url(#'+uid+')"/>';
+    return '';
+  });
+}
+function buildBallSvg(base,uid,contentFn){
+  return '<svg width="22" height="22" viewBox="0 0 22 22" style="vertical-align:middle;margin-right:6px">'+
+    '<defs><clipPath id="'+uid+'"><circle cx="11" cy="11" r="10"/></clipPath></defs>'+
+    '<circle cx="11" cy="11" r="10" fill="'+base+'" stroke="#ccc" stroke-width="0.5"/>'+
+    contentFn()+
+    '<ellipse cx="8" cy="8" rx="4" ry="3" fill="rgba(255,255,255,0.25)" transform="rotate(-30 8 8)"/></svg>';
+}
+
+function renderPagination(){
+  var tp=Math.ceil(filtered.length/perPage);var pag=document.getElementById('pagination');
+  if(tp<=1){pag.innerHTML='<div class="pag-info">'+filtered.length.toLocaleString('fr')+' resultat'+(filtered.length>1?'s':'')+'</div><div></div>';return;}
+  var s=(currentPage-1)*perPage+1,e=Math.min(currentPage*perPage,filtered.length);
+  var btns='<button class="pag-btn" '+(currentPage===1?'disabled':'')+' onclick="goPage('+(currentPage-1)+')">\u2039</button>';
+  getPages(currentPage,tp).forEach(function(p){
+    if(p==='\u2026')btns+='<span style="padding:0 4px;color:var(--text-muted)">\u2026</span>';
+    else btns+='<button class="pag-btn '+(p===currentPage?'active':'')+'" onclick="goPage('+p+')">'+p+'</button>';
+  });
+  btns+='<button class="pag-btn" '+(currentPage===tp?'disabled':'')+' onclick="goPage('+(currentPage+1)+')">\u203A</button>';
+  pag.innerHTML='<div class="pag-info">'+s.toLocaleString('fr')+'\u2013'+e.toLocaleString('fr')+' sur '+filtered.length.toLocaleString('fr')+
+    ' <select class="per-page" onchange="changePerPage(this.value)">'+[25,50,100,200].map(function(n){return '<option value="'+n+'" '+(n===perPage?'selected':'')+'>'+n+'/page</option>';}).join('')+'</select></div>'+
+    '<div class="pag-buttons">'+btns+'</div>';
+}
+function getPages(c,t){if(t<=7){var a=[];for(var i=1;i<=t;i++)a.push(i);return a;}var p=[1];if(c>3)p.push('\u2026');for(var i=Math.max(2,c-1);i<=Math.min(t-1,c+1);i++)p.push(i);if(c<t-2)p.push('\u2026');p.push(t);return p;}
+function goPage(p){var t=Math.ceil(filtered.length/perPage);if(p<1||p>t)return;currentPage=p;renderTable();document.querySelector('.table-panel').scrollIntoView({behavior:'smooth',block:'start'});}
+function changePerPage(v){perPage=parseInt(v);currentPage=1;renderTable();}
+
+function renderStats(){
+  var d=filtered.length?filtered:allData;var total=d.length;
+  var mSet=new Set();var moSet=new Set();var partners=0;
+  d.forEach(function(b){mSet.add(b.marque);moSet.add(b.modele);if(b.partenaire&&b.partenaire!=='Non')partners++;});
+  var pct=total?((partners/total)*100).toFixed(1):'0';
+  document.getElementById('statsRow').innerHTML=
+    '<div class="stat-item"><div class="stat-label">Nombre de balles</div><div class="stat-value">'+total.toLocaleString('fr')+'</div></div>'+
+    '<div class="stat-item"><div class="stat-label">Marques</div><div class="stat-value">'+mSet.size.toLocaleString('fr')+'</div></div>'+
+    '<div class="stat-item"><div class="stat-label">Modeles</div><div class="stat-value">'+moSet.size.toLocaleString('fr')+'</div></div>'+
+    '<div class="stat-item"><div class="stat-label">Avec partenaire</div><div class="stat-value">'+partners.toLocaleString('fr')+'</div><div class="stat-sub">'+pct+' %</div></div>';
+}
+function renderStatsTab(){
+  var d=filtered.length?filtered:allData;
+  var mc={};d.forEach(function(b){mc[b.marque]=(mc[b.marque]||0)+1;});
+  var topM=Object.entries(mc).sort(function(a,b){return b[1]-a[1];}).slice(0,30);var maxM=topM[0]?topM[0][1]:1;
+  var moc={};d.forEach(function(b){moc[b.modele]=(moc[b.modele]||0)+1;});
+  var topMo=Object.entries(moc).sort(function(a,b){return b[1]-a[1];}).slice(0,30);var maxMo=topMo[0]?topMo[0][1]:1;
+  var cc={};d.forEach(function(b){var c=(b.couleur||'NR').split(' ')[0].split('+')[0].trim();cc[c]=(cc[c]||0)+1;});
+  var topC=Object.entries(cc).sort(function(a,b){return b[1]-a[1];});
+  var pc={};d.filter(function(b){return b.partenaire&&b.partenaire!=='Non';}).forEach(function(b){pc[b.partenaire]=(pc[b.partenaire]||0)+1;});
+  var topP=Object.entries(pc).sort(function(a,b){return b[1]-a[1];}).slice(0,30);var maxP=topP[0]?topP[0][1]:1;
+  var nc={};d.forEach(function(b){var n=b.numero;if(n&&n!=='NR')nc[n]=(nc[n]||0)+1;});
+  var topN=Object.entries(nc).sort(function(a,b){return b[1]-a[1];}).slice(0,30);var maxN=topN[0]?topN[0][1]:1;
+  document.getElementById('statsTab').innerHTML='<div class="charts-grid">'+
+    '<div class="panel chart-card"><div class="chart-title">Top 30 Marques</div><div class="bar-chart">'+topM.map(function(x){return '<div class="bar-row"><span class="bar-label" title="'+esc(x[0])+'">'+esc(x[0])+'</span><div class="bar-track"><div class="bar-fill bar-fill-primary" style="width:'+(x[1]/maxM*100).toFixed(1)+'%"></div></div><span class="bar-value">'+x[1]+'</span></div>';}).join('')+'</div></div>'+
+    '<div class="panel chart-card"><div class="chart-title">Top 30 Modeles</div><div class="bar-chart">'+topMo.map(function(x){return '<div class="bar-row"><span class="bar-label" title="'+esc(x[0])+'">'+esc(x[0])+'</span><div class="bar-track"><div class="bar-fill bar-fill-primary" style="width:'+(x[1]/maxMo*100).toFixed(1)+'%"></div></div><span class="bar-value">'+x[1]+'</span></div>';}).join('')+'</div></div>'+
+    '<div class="panel chart-card"><div class="chart-title">Top 30 Partenaires</div><div class="bar-chart">'+topP.map(function(x){return '<div class="bar-row"><span class="bar-label" title="'+esc(x[0])+'">'+esc(x[0])+'</span><div class="bar-track"><div class="bar-fill bar-fill-amber" style="width:'+(x[1]/maxP*100).toFixed(1)+'%"></div></div><span class="bar-value">'+x[1]+'</span></div>';}).join('')+'</div></div>'+
+    '<div class="panel chart-card"><div class="chart-title">Repartition par couleur</div><div class="color-grid">'+topC.map(function(x){var col=COLOR_MAP[x[0]]||'var(--text-muted)';return '<span class="color-chip"><span class="color-dot" style="background:'+col+'"></span>'+esc(x[0])+' <strong>'+x[1]+'</strong></span>';}).join('')+'</div></div>'+
+    '<div class="panel chart-card"><div class="chart-title">Top 30 Numeros</div><div class="bar-chart">'+topN.map(function(x){return '<div class="bar-row"><span class="bar-label">N\u00B0 '+esc(x[0])+'</span><div class="bar-track"><div class="bar-fill bar-fill-green" style="width:'+(x[1]/maxN*100).toFixed(1)+'%"></div></div><span class="bar-value">'+x[1]+'</span></div>';}).join('')+'</div></div>'+
+  '</div>';
+}
+function switchTab(t){
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.toggle('active',b.dataset.tab===t);});
+  document.getElementById('collectionTab').style.display=t==='collection'?'':'none';
+  document.getElementById('statsTab').style.display=t==='stats'?'':'none';
+  if(t==='stats')renderStatsTab();
+}
+
+function resetFs(){
+  ['fsMarque','fsModele','fsCouleur','fsPartenaire'].forEach(function(id){
+    document.getElementById(fsFieldMap[id]).value='';
+    var btn=document.querySelector('#'+id+' .fselect-btn');
+    btn.textContent=fsLabels[id];btn.classList.remove('has-value');
+  });
+}
+function setFs(id,val){
+  document.getElementById(fsFieldMap[id]).value=val;
+  var btn=document.querySelector('#'+id+' .fselect-btn');
+  btn.textContent=val||fsLabels[id];
+  btn.classList.toggle('has-value',!!val);
+}
+function openAdd(){
+  document.getElementById('modalTitle').textContent='Ajouter une balle';
+  document.getElementById('editId').value='';
+  resetFs();
+  document.getElementById('fNumero').value='';
+  document.getElementById('fLien').value='';
+  setFs('fsPartenaire','Non');
+  document.getElementById('modal').classList.add('open');
+}
+function openEdit(id){
+  var b=allData.find(function(x){return x.id===id;});if(!b)return;
+  document.getElementById('modalTitle').textContent='Modifier la balle';
+  document.getElementById('editId').value=id;
+  setFs('fsMarque',b.marque);
+  setFs('fsModele',b.modele);
+  document.getElementById('fNumero').value=b.numero;
+  setFs('fsCouleur',b.couleur);
+  setFs('fsPartenaire',b.partenaire);
+  document.getElementById('fLien').value=b.lien||'';
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open');}
+
+function saveBall(keepOpen){
+  var marque=document.getElementById('fMarque').value.trim();
+  var modele=document.getElementById('fModele').value.trim();
+  var numero=document.getElementById('fNumero').value.trim();
+  var couleur=document.getElementById('fCouleur').value.trim();
+  var partenaire=document.getElementById('fPartenaire').value.trim()||'Non';
+  var lien=document.getElementById('fLien').value.trim();
+  if(!marque){toast('La marque est obligatoire');return;}
+
+  var data={marque:marque,modele:modele,numero:numero,couleur:couleur,partenaire:partenaire,lien:lien};
+  var editId=document.getElementById('editId').value;
+
+  if(editId){
+    db.collection('balles').doc(editId).update(data).then(function(){
+      toast(marque+' '+modele+' modifiee');closeModal();reloadData();
+    }).catch(function(err){toast('Erreur: '+err.message);});
+  } else {
+    data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+    db.collection('balles').add(data).then(function(){
+      toast(marque+' '+modele+' ajoutee');
+      if(keepOpen){resetFs();document.getElementById('fNumero').value='';document.getElementById('fLien').value='';setFs('fsPartenaire','Non');}
+      else{closeModal();}
+      reloadData();
+    }).catch(function(err){toast('Erreur: '+err.message);});
+  }
+}
+
+function openConfirm(id){
+  deleteTarget=id;var b=allData.find(function(x){return x.id===id;});
+  document.getElementById('confirmText').innerHTML='Supprimer la balle <strong>'+esc(b?b.marque:'')+' '+esc(b?b.modele:'')+'</strong> (N\u00B0 '+esc(b?b.numero:'')+') ?';
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirm(){document.getElementById('confirmModal').classList.remove('open');deleteTarget=null;}
+function confirmDelete(){
+  if(!deleteTarget)return;
+  var b=allData.find(function(x){return x.id===deleteTarget;});
+  db.collection('balles').doc(deleteTarget).delete().then(function(){
+    toast((b?b.marque:'')+' '+(b?b.modele:'')+' supprimee');reloadData();
+  }).catch(function(err){toast('Erreur: '+err.message);});
+  closeConfirm();
+}
+
+function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg){var c=document.getElementById('toasts');var el=document.createElement('div');el.className='toast';el.textContent=msg;c.appendChild(el);setTimeout(function(){el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(function(){el.remove();},300);},3000);}
+document.getElementById('tbody').addEventListener('click',function(e){
+  var tr=e.target.closest('tr');if(!tr||e.target.closest('.action-btn'))return;
+  tr.classList.toggle('selected');
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeConfirm();}});
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeModal();});
+document.getElementById('confirmModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeConfirm();});
+
+init();
+</script>
+</body>
+</html>
