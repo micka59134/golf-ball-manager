@@ -542,7 +542,7 @@ tr.selected { background: rgba(79,70,229,0.06); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.5.1</footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.5.2</footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -1053,7 +1053,7 @@ function renderStatsTab(){
   document.getElementById('statsTab').innerHTML='<div class="charts-grid">'+
     '<div class="panel chart-card"><div class="chart-title">Top 30 Marques</div><div class="bar-chart">'+topM.map(function(x){return '<div class="bar-row" data-stat="marque" data-stat-val="'+esc(x[0])+'"><span class="bar-label" title="'+esc(x[0])+'">'+esc(x[0])+'</span><div class="bar-track"><div class="bar-fill bar-fill-primary" style="width:'+(x[1]/maxM*100).toFixed(1)+'%"></div></div><span class="bar-value">'+x[1]+'</span></div>';}).join('')+'</div></div>'+
     '<div class="panel chart-card"><div class="chart-title">Top 30 Modeles</div><div class="bar-chart">'+topMo.map(function(x){return '<div class="bar-row" data-stat="modele" data-stat-val="'+esc(x[0])+'"><span class="bar-label" title="'+esc(x[0])+'">'+esc(x[0])+'</span><div class="bar-track"><div class="bar-fill bar-fill-primary" style="width:'+(x[1]/maxMo*100).toFixed(1)+'%"></div></div><span class="bar-value">'+x[1]+'</span></div>';}).join('')+'</div></div>'+
-    '<div class="panel chart-card"><div class="chart-title">Top 30 Partenaires</div><div class="bar-chart">'+topP.map(function(x){return '<div class="bar-row" data-stat="partenaire" data-stat-val="'+esc(x[0])+'"><span class="bar-label" title="'+esc(x[0])+'">'+esc(x[0])+'</span><div class="bar-track"><div class="bar-fill bar-fill-amber" style="width:'+(x[1]/maxP*100).toFixed(1)+'%"></div></div><span class="bar-value">'+x[1]+'</span></div>';}).join('')+'</div></div>'+
+    '<div class="panel chart-card"><div class="chart-title">Top 30 Partenaires</div><div class="bar-chart">'+topP.map(function(x){return '<div class="bar-row" data-stat="partenaire" data-stat-val="'+esc(x[0])+'"><span class="bar-label" style="width:auto;max-width:none" title="'+esc(x[0])+'">'+esc(x[0])+'</span><div class="bar-track"><div class="bar-fill bar-fill-amber" style="width:'+(x[1]/maxP*100).toFixed(1)+'%"></div></div><span class="bar-value">'+x[1]+'</span></div>';}).join('')+'</div></div>'+
     '<div class="panel chart-card"><div class="chart-title">Repartition par couleur</div><div class="color-grid">'+topC.map(function(x){var col=COLOR_MAP[x[0]]||'var(--text-muted)';return '<span class="color-chip" data-stat="couleur" data-stat-val="'+esc(x[0])+'"><span class="color-dot" style="background:'+col+'"></span>'+esc(x[0])+' <strong>'+x[1]+'</strong></span>';}).join('')+'</div></div>'+
     '<div class="panel chart-card"><div class="chart-title">Top 30 Numeros</div><div class="bar-chart">'+topN.map(function(x){return '<div class="bar-row" data-stat="numero" data-stat-val="'+esc(x[0])+'"><span class="bar-label">N\u00B0 '+esc(x[0])+'</span><div class="bar-track"><div class="bar-fill bar-fill-green" style="width:'+(x[1]/maxN*100).toFixed(1)+'%"></div></div><span class="bar-value">'+x[1]+'</span></div>';}).join('')+'</div></div>'+
   '</div>';
