@@ -201,8 +201,22 @@ td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align:
 tr:last-child td { border-bottom: none; }
 tr { transition: background .1s; cursor: pointer; }
 tr:hover { background: var(--primary-soft); }
-tr.selected { background: rgba(79,70,229,0.03); }
-.dark tr.selected { background: rgba(129,140,248,0.06); }
+tr.selected { background: rgba(79,70,229,0.06); }
+.dark tr.selected { background: rgba(129,140,248,0.08); }
+.bulk-bar {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--primary); color: #fff; border-radius: 12px; padding: 10px 20px;
+  display: none; align-items: center; gap: 16px; box-shadow: 0 8px 32px rgba(0,0,0,.25);
+  z-index: 90; font-size: 14px; font-weight: 500;
+}
+.bulk-bar.show { display: flex; }
+.bulk-bar .bulk-count { opacity: .85; }
+.bulk-bar button { background: rgba(255,255,255,.2); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background .15s; }
+.bulk-bar button:hover { background: rgba(255,255,255,.35); }
+.bulk-bar .bulk-cancel { background: transparent; opacity: .7; }
+.bulk-bar .bulk-cancel:hover { opacity: 1; background: rgba(255,255,255,.1); }
+.bulk-bar .bulk-del { background: rgba(220,38,38,.7); }
+.bulk-bar .bulk-del:hover { background: rgba(220,38,38,.9); }
 .col-num { text-align: center; font-variant-numeric: tabular-nums; }
 .num-badge {
   display: inline-flex; align-items: center; justify-content: center;
@@ -498,7 +512,37 @@ tr.selected { background: rgba(79,70,229,0.03); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.4.0</footer>
+<div class="bulk-bar" id="bulkBar">
+  <span class="bulk-count" id="bulkCount">0 selectionnee(s)</span>
+  <button onclick="openBulkEdit()">Modifier</button>
+  <button class="bulk-del" onclick="openBulkDelete()">Supprimer</button>
+  <button class="bulk-cancel" onclick="clearSelection()">Annuler</button>
+</div>
+
+<div class="modal-overlay" id="bulkModal">
+  <div class="modal-box">
+    <div class="modal-head"><h2>Modifier la selection</h2><button class="close-btn" onclick="closeBulkModal()">&#10005;</button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px" id="bulkInfo"></p>
+      <div class="form-group"><label>Champ a modifier</label>
+        <select id="bulkField" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-elevated);color:var(--text)" onchange="onBulkFieldChange()">
+          <option value="">Choisir un champ</option>
+          <option value="marque">Marque</option>
+          <option value="modele">Modele</option>
+          <option value="numero">Numero</option>
+          <option value="couleur">Couleur</option>
+          <option value="partenaire">Partenaire</option>
+        </select>
+      </div>
+      <div class="form-group" id="bulkValueGroup" style="display:none"><label>Nouvelle valeur</label>
+        <input type="text" id="bulkValue" placeholder="Nouvelle valeur" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg-elevated);color:var(--text);box-sizing:border-box">
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn" onclick="closeBulkModal()">Annuler</button><button class="btn btn-primary" onclick="applyBulkEdit()">Appliquer</button></div>
+  </div>
+</div>
+
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.5.0</footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -846,7 +890,7 @@ function renderTable(){
   } else {
     tbody.innerHTML=page.map(function(b){
       var hasP=b.partenaire&&b.partenaire!=='Non';var cd=getColorDot(b.couleur);
-      return '<tr>'+
+      return '<tr data-id="'+b.id+'"'+(selectedIds.has(b.id)?' class="selected"':'')+'>'+
         '<td class="cell-marque">'+esc(b.marque)+'</td><td>'+esc(b.modele)+'</td>'+
         '<td class="col-num">'+(b.numero?'<span class="num-badge'+(String(b.numero).length>2?' wide':'')+'">'+esc(b.numero)+'</span>':'')+'</td><td>'+cd+esc(b.couleur)+'</td>'+
         '<td class="hide-m">'+(hasP?'<span class="badge badge-partner">'+esc(b.partenaire)+'</span>':'<span style="color:var(--text-muted)">\u2014</span>')+'</td>'+
@@ -1106,13 +1150,84 @@ function confirmDelete(){
 
 function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(msg){var c=document.getElementById('toasts');var el=document.createElement('div');el.className='toast';el.textContent=msg;c.appendChild(el);setTimeout(function(){el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(function(){el.remove();},300);},3000);}
+var selectedIds=new Set();
+function updateBulkBar(){
+  var bar=document.getElementById('bulkBar');
+  var n=selectedIds.size;
+  document.getElementById('bulkCount').textContent=n+' selectionnee'+(n>1?'s':'');
+  bar.classList.toggle('show',n>0);
+}
+function clearSelection(){
+  selectedIds.clear();
+  document.querySelectorAll('#tbody tr.selected').forEach(function(tr){tr.classList.remove('selected');});
+  updateBulkBar();
+}
 document.getElementById('tbody').addEventListener('click',function(e){
   var tr=e.target.closest('tr');if(!tr||e.target.closest('.action-btn'))return;
-  tr.classList.toggle('selected');
+  var id=tr.dataset.id;if(!id)return;
+  if(selectedIds.has(id)){selectedIds.delete(id);tr.classList.remove('selected');}
+  else{selectedIds.add(id);tr.classList.add('selected');}
+  updateBulkBar();
 });
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeConfirm();}});
+function openBulkEdit(){
+  document.getElementById('bulkInfo').textContent=selectedIds.size+' balle'+(selectedIds.size>1?'s':'')+' selectionnee'+(selectedIds.size>1?'s':'');
+  document.getElementById('bulkField').value='';
+  document.getElementById('bulkValueGroup').style.display='none';
+  document.getElementById('bulkValue').value='';
+  document.getElementById('bulkModal').classList.add('open');
+}
+function closeBulkModal(){document.getElementById('bulkModal').classList.remove('open');}
+function onBulkFieldChange(){
+  var f=document.getElementById('bulkField').value;
+  document.getElementById('bulkValueGroup').style.display=f?'':'none';
+  document.getElementById('bulkValue').value='';
+  document.getElementById('bulkValue').placeholder='Nouveau '+f;
+}
+function applyBulkEdit(){
+  var field=document.getElementById('bulkField').value;
+  var val=document.getElementById('bulkValue').value.trim();
+  if(!field){toast('Choisissez un champ');return;}
+  if(!val){toast('Saisissez une valeur');return;}
+  var ids=Array.from(selectedIds);
+  var batch=db.batch();
+  ids.forEach(function(id){
+    var ref=db.collection('balles').doc(id);
+    var upd={};upd[field]=val;
+    batch.update(ref,upd);
+    var item=allData.find(function(x){return x.id===id;});
+    if(item)item[field]=val;
+  });
+  batch.commit().then(function(){
+    toast(ids.length+' balle'+(ids.length>1?'s':'')+' modifiee'+(ids.length>1?'s':''));
+    closeBulkModal();clearSelection();syncCache();
+  }).catch(function(err){toast('Erreur: '+err.message);});
+}
+function openBulkDelete(){
+  var n=selectedIds.size;
+  document.getElementById('confirmText').innerHTML='Supprimer <strong>'+n+' balle'+(n>1?'s':'')+'</strong> ?';
+  document.getElementById('confirmModal').classList.add('open');
+  deleteTarget='__bulk__';
+}
+var origConfirmDelete=confirmDelete;
+confirmDelete=function(){
+  if(deleteTarget==='__bulk__'){
+    var ids=Array.from(selectedIds);
+    var batch=db.batch();
+    ids.forEach(function(id){batch.delete(db.collection('balles').doc(id));});
+    batch.commit().then(function(){
+      allData=allData.filter(function(x){return!selectedIds.has(x.id);});
+      toast(ids.length+' balle'+(ids.length>1?'s':'')+' supprimee'+(ids.length>1?'s':''));
+      clearSelection();syncCache();
+    }).catch(function(err){toast('Erreur: '+err.message);});
+    closeConfirm();
+  } else {
+    origConfirmDelete();
+  }
+};
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeModal();closeConfirm();closeBulkModal();}});
 document.getElementById('modal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeModal();});
 document.getElementById('confirmModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeConfirm();});
+document.getElementById('bulkModal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeBulkModal();});
 
 init();
 </script>
