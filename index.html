@@ -440,6 +440,7 @@ tr.selected { background: rgba(79,70,229,0.03); }
     </div>
     <div class="iselect" id="isMarque"><button class="iselect-btn" onclick="toggleDrop('isMarque')">Toutes marques</button><div class="iselect-drop"><input class="iselect-search" placeholder="Rechercher..." oninput="filterDropdown(this,'isMarque')"><div class="iselect-opts"></div></div></div>
     <div class="iselect" id="isModele"><button class="iselect-btn" onclick="toggleDrop('isModele')">Tous modeles</button><div class="iselect-drop"><input class="iselect-search" placeholder="Rechercher..." oninput="filterDropdown(this,'isModele')"><div class="iselect-opts"></div></div></div>
+    <div class="iselect" id="isNumero"><button class="iselect-btn" onclick="toggleDrop('isNumero')">Tous numeros</button><div class="iselect-drop"><input class="iselect-search" placeholder="Rechercher..." oninput="filterDropdown(this,'isNumero')"><div class="iselect-opts"></div></div></div>
     <div class="iselect" id="isCouleur"><button class="iselect-btn" onclick="toggleDrop('isCouleur')">Toutes couleurs</button><div class="iselect-drop"><input class="iselect-search" placeholder="Rechercher..." oninput="filterDropdown(this,'isCouleur')"><div class="iselect-opts"></div></div></div>
     <div class="iselect" id="isPartenaire"><button class="iselect-btn" onclick="toggleDrop('isPartenaire')">Tous partenaires</button><div class="iselect-drop"><input class="iselect-search" placeholder="Rechercher..." oninput="filterDropdown(this,'isPartenaire')"><div class="iselect-opts"></div></div></div>
     <button class="reset-btn" onclick="resetFilters()">&#10005; Reinitialiser</button>
@@ -497,7 +498,7 @@ tr.selected { background: rgba(79,70,229,0.03); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.3.2</footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.4.0</footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -594,6 +595,8 @@ function populateFilters() {
   buildDrop('isMarque','Toutes marques',marques);
   var modeles = unique(allData.map(function(b){return b.modele;})).sort();
   buildDrop('isModele','Tous modeles',modeles);
+  var numeros = unique(allData.map(function(b){return b.numero;})).sort(function(a,b){return(parseInt(a)||0)-(parseInt(b)||0);});
+  buildDrop('isNumero','Tous numeros',numeros);
   buildDrop('isCouleur','Toutes couleurs',couleurs);
   buildDrop('isPartenaire','Tous partenaires',['Non'].concat(partenaires));
 }
@@ -765,10 +768,10 @@ document.addEventListener('click',function(e){
   if(!row)return;
   var type=row.dataset.stat;
   var val=row.dataset.statVal;
-  var dropMap={marque:'isMarque',modele:'isModele',partenaire:'isPartenaire',couleur:'isCouleur'};
-  ['isMarque','isModele','isCouleur','isPartenaire'].forEach(function(id){selectDrop(id,'');});
+  var dropMap={marque:'isMarque',modele:'isModele',numero:'isNumero',partenaire:'isPartenaire',couleur:'isCouleur'};
+  ['isMarque','isModele','isNumero','isCouleur','isPartenaire'].forEach(function(id){selectDrop(id,'');});
   document.getElementById('searchInput').value='';
-  if(type==='couleur'||type==='numero'){
+  if(type==='couleur'){
     document.getElementById('searchInput').value=val;
     applyFilters();
   } else if(dropMap[type]){
@@ -783,6 +786,7 @@ function getFilterValues(){
     q:document.getElementById('searchInput').value.toLowerCase().trim(),
     fm:(dropState.isMarque&&dropState.isMarque.value)||'',
     fmo:(dropState.isModele&&dropState.isModele.value)||'',
+    fn:(dropState.isNumero&&dropState.isNumero.value)||'',
     fc:(dropState.isCouleur&&dropState.isCouleur.value)||'',
     fp:(dropState.isPartenaire&&dropState.isPartenaire.value)||''
   };
@@ -792,6 +796,7 @@ function filterData(skip){
   return allData.filter(function(b){
     if(skip!=='fm'&&f.fm&&b.marque!==f.fm)return false;
     if(skip!=='fmo'&&f.fmo&&b.modele!==f.fmo)return false;
+    if(skip!=='fn'&&f.fn&&b.numero!==f.fn)return false;
     if(skip!=='fc'&&f.fc&&b.couleur!==f.fc)return false;
     if(skip!=='fp'&&f.fp&&b.partenaire!==f.fp)return false;
     if(f.q){return(b.marque+' '+b.modele+' '+b.numero+' '+b.couleur+' '+b.partenaire).toLowerCase().indexOf(f.q)>=0;}
@@ -801,10 +806,12 @@ function filterData(skip){
 function updateDropdownOptions(){
   var forMarque=filterData('fm');
   var forModele=filterData('fmo');
+  var forNumero=filterData('fn');
   var forCouleur=filterData('fc');
   var forPartner=filterData('fp');
   dropState.isMarque.items=unique(forMarque.map(function(b){return b.marque;})).sort();
   dropState.isModele.items=unique(forModele.map(function(b){return b.modele;})).sort();
+  dropState.isNumero.items=unique(forNumero.map(function(b){return b.numero;})).sort(function(a,b){return(parseInt(a)||0)-(parseInt(b)||0);});
   dropState.isCouleur.items=unique(forCouleur.map(function(b){return b.couleur;})).sort();
   var p=unique(forPartner.filter(function(b){return b.partenaire&&b.partenaire!=='Non';}).map(function(b){return b.partenaire;})).sort();
   dropState.isPartenaire.items=['Non'].concat(p);
@@ -816,7 +823,7 @@ function applyFilters(){
   if(document.getElementById('statsTab').style.display!=='none')renderStatsTab();
 }
 var dTimer;function debouncedFilter(){clearTimeout(dTimer);dTimer=setTimeout(applyFilters,200);}
-function resetFilters(){document.getElementById('searchInput').value='';['isMarque','isModele','isCouleur','isPartenaire'].forEach(function(id){selectDrop(id,'');});applyFilters();}
+function resetFilters(){document.getElementById('searchInput').value='';['isMarque','isModele','isNumero','isCouleur','isPartenaire'].forEach(function(id){selectDrop(id,'');});applyFilters();}
 
 function sortBy(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}sortData();renderTable();}
 function sortData(){
