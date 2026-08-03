@@ -497,7 +497,7 @@ tr.selected { background: rgba(79,70,229,0.03); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.3.1</footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.3.2</footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -544,6 +544,9 @@ function init() {
     document.getElementById('themeBtn').innerHTML = '&#9728;&#65039;';
   }
   var cached = localStorage.getItem('golf_cache');
+  var cacheAge = Date.now() - parseInt(localStorage.getItem('golf_cache_ts') || '0');
+  var CACHE_TTL = 24 * 60 * 60 * 1000;
+
   if (cached) {
     try {
       allData = JSON.parse(cached);
@@ -556,23 +559,25 @@ function init() {
 
   setupAc();
 
-  db.collection('balles').get().then(function(snapshot) {
-    allData = [];
-    snapshot.forEach(function(doc) {
-      var d = doc.data();
-      allData.push({ id: doc.id, marque: d.marque || '', modele: d.modele || '', numero: d.numero || '', couleur: d.couleur || '', partenaire: d.partenaire || '', lien: d.lien || '' });
+  if (!cached || cacheAge > CACHE_TTL) {
+    db.collection('balles').get().then(function(snapshot) {
+      allData = [];
+      snapshot.forEach(function(doc) {
+        var d = doc.data();
+        allData.push({ id: doc.id, marque: d.marque || '', modele: d.modele || '', numero: d.numero || '', couleur: d.couleur || '', partenaire: d.partenaire || '', lien: d.lien || '' });
+      });
+      try { localStorage.setItem('golf_cache', JSON.stringify(allData)); localStorage.setItem('golf_cache_ts', String(Date.now())); } catch(e) {}
+      populateFilters();
+      buildAcSources();
+      applyFilters();
+      renderStats();
+    }).catch(function(err) {
+      if (!allData.length) {
+        toast('Erreur de connexion Firebase');
+      }
+      console.error('Firestore error:', err);
     });
-    try { localStorage.setItem('golf_cache', JSON.stringify(allData)); localStorage.setItem('golf_cache_ts', String(Date.now())); } catch(e) {}
-    populateFilters();
-    buildAcSources();
-    applyFilters();
-    renderStats();
-  }).catch(function(err) {
-    if (!allData.length) {
-      toast('Erreur de connexion Firebase');
-    }
-    console.error('Firestore error:', err);
-  });
+  }
 }
 
 function setSyncStatus(state, text) {}
