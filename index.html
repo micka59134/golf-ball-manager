@@ -500,7 +500,7 @@ tr.selected { background: rgba(79,70,229,0.06); }
       <div class="form-group"><label>Partenaire</label><div class="fselect" id="fsPartenaire" data-field="partenaire"><input type="hidden" id="fPartenaire"><button type="button" class="fselect-btn" onclick="toggleFs('fsPartenaire')">Choisir un partenaire</button><div class="fselect-drop"><input class="fselect-search" placeholder="Rechercher..." oninput="filterFs('fsPartenaire',this.value)"><div class="fselect-opts"></div></div></div></div>
       <div class="form-group"><label>Lien Google Partenaire</label><input type="url" id="fLien" placeholder="https://..."></div>
     </div>
-    <div class="modal-foot"><button class="btn" onclick="closeModal()">Annuler</button><button class="btn btn-primary" onclick="saveBall(true)" style="background:var(--green);border-color:var(--green)">Enregistrer + Suivante</button><button class="btn btn-primary" onclick="saveBall(false)">Enregistrer</button></div>
+    <div class="modal-foot"><button class="btn" onclick="closeModal()">Annuler</button><button class="btn btn-primary" id="btnSaveNext" onclick="saveBall(true)" style="background:var(--green);border-color:var(--green)">Enregistrer + Suivante</button><button class="btn btn-primary" onclick="saveBall(false)">Enregistrer</button></div>
   </div>
 </div>
 
@@ -542,7 +542,7 @@ tr.selected { background: rgba(79,70,229,0.06); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.6.0</footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.6.1</footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -1079,9 +1079,14 @@ function setFs(id,val){
   btn.textContent=val||fsLabels[id];
   btn.classList.toggle('has-value',!!val);
 }
+var addCount=0;
+function updateSaveNextBtn(){
+  document.getElementById('btnSaveNext').textContent=addCount?'Enregistrer + Suivante ('+addCount+')':'Enregistrer + Suivante';
+}
 function openAdd(){
   document.getElementById('modalTitle').textContent='Ajouter une balle';
   document.getElementById('editId').value='';
+  addCount=0;updateSaveNextBtn();
   resetFs();
   document.getElementById('fNumero').value='';
   document.getElementById('fLien').value='';
@@ -1131,7 +1136,7 @@ function saveBall(keepOpen){
     db.collection('balles').add(data).then(function(ref){
       allData.push({id:ref.id,marque:marque,modele:modele,numero:numero,couleur:couleur,partenaire:partenaire,lien:lien});
       toast(marque+' '+modele+' ajoutee');
-      if(keepOpen){resetFs();document.getElementById('fNumero').value='';document.getElementById('fLien').value='';setFs('fsPartenaire','Non');}
+      if(keepOpen){addCount++;updateSaveNextBtn();resetFs();document.getElementById('fNumero').value='';document.getElementById('fLien').value='';setFs('fsPartenaire','Non');}
       else{closeModal();}
       syncCache();
     }).catch(function(err){toast('Erreur: '+err.message);});
