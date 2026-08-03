@@ -542,7 +542,7 @@ tr.selected { background: rgba(79,70,229,0.06); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.5.4</footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.6.0</footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -633,18 +633,18 @@ function syncCache(){
 }
 
 function populateFilters() {
-  var marques = unique(allData.map(function(b){return b.marque;})).sort();
-  var couleurs = unique(allData.map(function(b){return b.couleur;})).sort();
-  var partenaires = unique(allData.filter(function(b){return b.partenaire && b.partenaire!=='Non';}).map(function(b){return b.partenaire;})).sort();
-  buildDrop('isMarque','Toutes marques',marques);
-  var modeles = unique(allData.map(function(b){return b.modele;})).sort();
-  buildDrop('isModele','Tous modeles',modeles);
-  var numeros = unique(allData.map(function(b){return b.numero;})).sort(function(a,b){return(parseInt(a)||0)-(parseInt(b)||0);});
-  buildDrop('isNumero','Tous numeros',numeros);
-  buildDrop('isCouleur','Toutes couleurs',couleurs);
-  buildDrop('isPartenaire','Tous partenaires',['Non'].concat(partenaires));
+  buildDrop('isMarque','Toutes marques',sortByCount(allData,'marque'));
+  buildDrop('isModele','Tous modeles',sortByCount(allData,'modele'));
+  buildDrop('isNumero','Tous numeros',sortByCount(allData,'numero'));
+  buildDrop('isCouleur','Toutes couleurs',sortByCount(allData,'couleur'));
+  var p=sortByCount(allData.filter(function(b){return b.partenaire&&b.partenaire!=='Non';}), 'partenaire');
+  buildDrop('isPartenaire','Tous partenaires',['Non'].concat(p));
 }
 function unique(arr){var s=new Set();var r=[];arr.forEach(function(v){if(v&&!s.has(v)){s.add(v);r.push(v);}});return r;}
+function sortByCount(data,field){
+  var c={};data.forEach(function(b){var v=b[field];if(v)c[v]=(c[v]||0)+1;});
+  return Object.keys(c).sort(function(a,b){return c[b]-c[a];});
+}
 
 var acSources={};
 function buildAcSources(){
@@ -853,11 +853,11 @@ function updateDropdownOptions(){
   var forNumero=filterData('fn');
   var forCouleur=filterData('fc');
   var forPartner=filterData('fp');
-  dropState.isMarque.items=unique(forMarque.map(function(b){return b.marque;})).sort();
-  dropState.isModele.items=unique(forModele.map(function(b){return b.modele;})).sort();
-  dropState.isNumero.items=unique(forNumero.map(function(b){return b.numero;})).sort(function(a,b){return(parseInt(a)||0)-(parseInt(b)||0);});
-  dropState.isCouleur.items=unique(forCouleur.map(function(b){return b.couleur;})).sort();
-  var p=unique(forPartner.filter(function(b){return b.partenaire&&b.partenaire!=='Non';}).map(function(b){return b.partenaire;})).sort();
+  dropState.isMarque.items=sortByCount(forMarque,'marque');
+  dropState.isModele.items=sortByCount(forModele,'modele');
+  dropState.isNumero.items=sortByCount(forNumero,'numero');
+  dropState.isCouleur.items=sortByCount(forCouleur,'couleur');
+  var p=sortByCount(forPartner.filter(function(b){return b.partenaire&&b.partenaire!=='Non';}),'partenaire');
   dropState.isPartenaire.items=['Non'].concat(p);
 }
 function applyFilters(){
