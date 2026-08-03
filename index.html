@@ -497,7 +497,7 @@ tr.selected { background: rgba(79,70,229,0.03); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.2.0</footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.3.0</footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -544,52 +544,48 @@ function init() {
     document.getElementById('themeBtn').innerHTML = '&#9728;&#65039;';
   }
   var cached = localStorage.getItem('golf_cache');
+  var cacheTime = parseInt(localStorage.getItem('golf_cache_ts') || '0');
+  var cacheAge = Date.now() - cacheTime;
+  var CACHE_TTL = 24 * 60 * 60 * 1000;
+
   if (cached) {
     try {
       allData = JSON.parse(cached);
-      setSyncStatus('online', allData.length.toLocaleString('fr') + ' balles (cache)');
       populateFilters();
       buildAcSources();
       applyFilters();
       renderStats();
     } catch(e) {}
-  } else {
-    setSyncStatus('loading', 'Chargement...');
   }
 
   setupAc();
 
-  db.collection('balles').get().then(function(snapshot) {
-    allData = [];
-    snapshot.forEach(function(doc) {
-      var d = doc.data();
-      allData.push({ id: doc.id, marque: d.marque || '', modele: d.modele || '', numero: d.numero || '', couleur: d.couleur || '', partenaire: d.partenaire || '', lien: d.lien || '' });
+  if (!cached || cacheAge > CACHE_TTL) {
+    db.collection('balles').get().then(function(snapshot) {
+      allData = [];
+      snapshot.forEach(function(doc) {
+        var d = doc.data();
+        allData.push({ id: doc.id, marque: d.marque || '', modele: d.modele || '', numero: d.numero || '', couleur: d.couleur || '', partenaire: d.partenaire || '', lien: d.lien || '' });
+      });
+      try { localStorage.setItem('golf_cache', JSON.stringify(allData)); localStorage.setItem('golf_cache_ts', String(Date.now())); } catch(e) {}
+      populateFilters();
+      buildAcSources();
+      applyFilters();
+      renderStats();
+    }).catch(function(err) {
+      if (!allData.length) {
+        toast('Erreur de connexion Firebase');
+      }
+      console.error('Firestore error:', err);
     });
-    try { localStorage.setItem('golf_cache', JSON.stringify(allData)); } catch(e) {}
-    setSyncStatus('online', allData.length.toLocaleString('fr') + ' balles');
-    populateFilters();
-    buildAcSources();
-    applyFilters();
-    renderStats();
-  }).catch(function(err) {
-    if (!allData.length) {
-      setSyncStatus('offline', 'Hors ligne');
-      toast('Erreur de connexion Firebase');
-    }
-    console.error('Firestore error:', err);
-  });
+  }
 }
 
 function setSyncStatus(state, text) {}
 
-function reloadData(){
-  db.collection('balles').get().then(function(snapshot){
-    allData=[];
-    snapshot.forEach(function(doc){var d=doc.data();allData.push({id:doc.id,marque:d.marque||'',modele:d.modele||'',numero:d.numero||'',couleur:d.couleur||'',partenaire:d.partenaire||'',lien:d.lien||''});});
-    try{localStorage.setItem('golf_cache',JSON.stringify(allData));}catch(e){}
-    setSyncStatus('online',allData.length.toLocaleString('fr')+' balles');
-    populateFilters();buildAcSources();applyFilters();renderStats();
-  });
+function syncCache(){
+  try{localStorage.setItem('golf_cache',JSON.stringify(allData));localStorage.setItem('golf_cache_ts',String(Date.now()));}catch(e){}
+  populateFilters();buildAcSources();applyFilters();renderStats();
 }
 
 function populateFilters() {
@@ -1069,15 +1065,18 @@ function saveBall(keepOpen){
 
   if(editId){
     db.collection('balles').doc(editId).update(data).then(function(){
-      toast(marque+' '+modele+' modifiee');closeModal();reloadData();
+      var idx=allData.findIndex(function(x){return x.id===editId;});
+      if(idx>=0)Object.assign(allData[idx],data);
+      toast(marque+' '+modele+' modifiee');closeModal();syncCache();
     }).catch(function(err){toast('Erreur: '+err.message);});
   } else {
     data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
-    db.collection('balles').add(data).then(function(){
+    db.collection('balles').add(data).then(function(ref){
+      allData.push({id:ref.id,marque:marque,modele:modele,numero:numero,couleur:couleur,partenaire:partenaire,lien:lien});
       toast(marque+' '+modele+' ajoutee');
       if(keepOpen){resetFs();document.getElementById('fNumero').value='';document.getElementById('fLien').value='';setFs('fsPartenaire','Non');}
       else{closeModal();}
-      reloadData();
+      syncCache();
     }).catch(function(err){toast('Erreur: '+err.message);});
   }
 }
@@ -1091,8 +1090,10 @@ function closeConfirm(){document.getElementById('confirmModal').classList.remove
 function confirmDelete(){
   if(!deleteTarget)return;
   var b=allData.find(function(x){return x.id===deleteTarget;});
-  db.collection('balles').doc(deleteTarget).delete().then(function(){
-    toast((b?b.marque:'')+' '+(b?b.modele:'')+' supprimee');reloadData();
+  var delId=deleteTarget;
+  db.collection('balles').doc(delId).delete().then(function(){
+    allData=allData.filter(function(x){return x.id!==delId;});
+    toast((b?b.marque:'')+' '+(b?b.modele:'')+' supprimee');syncCache();
   }).catch(function(err){toast('Erreur: '+err.message);});
   closeConfirm();
 }
