@@ -542,7 +542,7 @@ tr.selected { background: rgba(79,70,229,0.06); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.6.1</footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.6.2</footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -870,11 +870,18 @@ var dTimer;function debouncedFilter(){clearTimeout(dTimer);dTimer=setTimeout(app
 function resetFilters(){document.getElementById('searchInput').value='';['isMarque','isModele','isNumero','isCouleur','isPartenaire'].forEach(function(id){selectDrop(id,'');});applyFilters();}
 
 function sortBy(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}sortData();renderTable();}
+function cmpField(a,b,col){
+  var va=(a[col]||'').toString().toLowerCase();var vb=(b[col]||'').toString().toLowerCase();
+  if(col==='numero'){va=parseFloat(va)||0;vb=parseFloat(vb)||0;return va-vb;}
+  return va.localeCompare(vb,'fr');
+}
 function sortData(){
   filtered.sort(function(a,b){
-    var va=(a[sortCol]||'').toString().toLowerCase();var vb=(b[sortCol]||'').toString().toLowerCase();
-    if(sortCol==='numero'){va=parseFloat(va)||0;vb=parseFloat(vb)||0;return(va-vb)*sortDir;}
-    return va.localeCompare(vb,'fr')*sortDir;
+    var r=cmpField(a,b,sortCol)*sortDir;
+    if(r!==0)return r;
+    var cols=['marque','modele','numero'];
+    for(var i=0;i<cols.length;i++){if(cols[i]!==sortCol){r=cmpField(a,b,cols[i]);if(r!==0)return r;}}
+    return 0;
   });
 }
 
