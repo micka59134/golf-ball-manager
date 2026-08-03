@@ -542,7 +542,7 @@ tr.selected { background: rgba(79,70,229,0.06); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.5.0</footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.5.1</footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -1101,12 +1101,18 @@ function openEdit(id){
 }
 function closeModal(){document.getElementById('modal').classList.remove('open');}
 
+function matchCase(field,val){
+  if(!val)return val;
+  var low=val.toLowerCase();
+  var existing=allData.find(function(b){return(b[field]||'').toLowerCase()===low;});
+  return existing?existing[field]:val;
+}
 function saveBall(keepOpen){
-  var marque=document.getElementById('fMarque').value.trim();
-  var modele=document.getElementById('fModele').value.trim();
+  var marque=matchCase('marque',document.getElementById('fMarque').value.trim());
+  var modele=matchCase('modele',document.getElementById('fModele').value.trim());
   var numero=document.getElementById('fNumero').value.trim();
-  var couleur=document.getElementById('fCouleur').value.trim();
-  var partenaire=document.getElementById('fPartenaire').value.trim()||'Non';
+  var couleur=matchCase('couleur',document.getElementById('fCouleur').value.trim());
+  var partenaire=matchCase('partenaire',document.getElementById('fPartenaire').value.trim()||'Non');
   var lien=document.getElementById('fLien').value.trim();
   if(!marque){toast('La marque est obligatoire');return;}
 
@@ -1188,6 +1194,7 @@ function applyBulkEdit(){
   var val=document.getElementById('bulkValue').value.trim();
   if(!field){toast('Choisissez un champ');return;}
   if(!val){toast('Saisissez une valeur');return;}
+  if(field!=='numero')val=matchCase(field,val);
   var ids=Array.from(selectedIds);
   var batch=db.batch();
   ids.forEach(function(id){
