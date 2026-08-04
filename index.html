@@ -190,36 +190,38 @@ header {
 .reset-btn:hover { color: var(--red); border-color: var(--red); background: var(--red-soft); }
 .results-count { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; margin-left: auto; white-space: nowrap; }
 
-.table-panel { margin-bottom: 16px; overflow: hidden; }
+.table-panel { margin-bottom: 16px; overflow: hidden; border: none !important; }
 .table-header {
-  padding: 14px 20px; display: flex; align-items: center;
-  justify-content: space-between; border-bottom: 1px solid var(--border);
+  padding: 16px 20px; display: flex; align-items: center;
+  justify-content: space-between; border-bottom: 2px solid var(--border);
+  background: transparent;
 }
-.table-title { font-size: 15px; font-weight: 700; }
+.table-title { font-size: 16px; font-weight: 800; }
 .table-title .count {
   display: inline-flex; align-items: center; justify-content: center;
-  min-width: 28px; padding: 2px 8px; background: var(--primary-soft);
-  color: var(--primary); border-radius: 20px; font-size: 12px; font-weight: 600;
+  min-width: 28px; padding: 3px 10px; background: var(--primary);
+  color: #fff; border-radius: 20px; font-size: 12px; font-weight: 700;
   margin-left: 8px; font-variant-numeric: tabular-nums;
 }
 .table-scroll { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+table { width: 100%; border-collapse: separate; border-spacing: 0 4px; font-size: 13px; }
 th {
-  text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted);
-  border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer;
+  text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted);
+  border-bottom: none; white-space: nowrap; cursor: pointer;
   user-select: none; transition: color .15s; position: sticky; top: 0;
   background: var(--bg-elevated); z-index: 2;
 }
-th:hover { color: var(--text); }
+th:hover { color: var(--primary); }
 th.sorted { color: var(--primary); }
 th .arrow { font-size: 10px; margin-left: 3px; }
-td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-tr:last-child td { border-bottom: none; }
-tr { transition: background .1s; cursor: pointer; }
-tr:hover { background: var(--primary-soft); }
-tr.selected { background: rgba(79,70,229,0.06); }
-.dark tr.selected { background: rgba(129,140,248,0.08); }
+td { padding: 12px 14px; border-bottom: none; vertical-align: middle; background: var(--bg-elevated); }
+td:first-child { border-radius: 10px 0 0 10px; }
+td:last-child { border-radius: 0 10px 10px 0; }
+tr { transition: all .15s ease; cursor: pointer; }
+tr:hover td { background: var(--primary-soft); }
+tr.selected td { background: rgba(79,70,229,0.08); box-shadow: inset 3px 0 0 var(--primary); }
+.dark tr.selected td { background: rgba(129,140,248,0.1); }
 .bulk-bar {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
   background: var(--primary); color: #fff; border-radius: 12px; padding: 10px 20px;
@@ -238,11 +240,11 @@ tr.selected { background: rgba(79,70,229,0.06); }
 .num-badge {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 32px; height: 32px; padding: 0 8px;
-  border-radius: 50%; background: var(--primary-soft); color: var(--primary);
-  font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;
+  border-radius: 10px; background: linear-gradient(135deg, var(--primary-soft), rgba(79,70,229,.12)); color: var(--primary);
+  font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums;
   letter-spacing: .02em;
 }
-.num-badge.wide { border-radius: 16px; }
+.num-badge.wide { border-radius: 10px; }
 .col-actions { text-align: right; white-space: nowrap; }
 .cell-marque { font-weight: 600; }
 .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: .02em; }
@@ -250,34 +252,37 @@ tr.selected { background: rgba(79,70,229,0.06); }
 .link-ext { color: var(--primary); display: inline-flex; text-decoration: none; }
 .link-ext:hover { color: var(--primary-hover); }
 .action-btn {
-  width: 30px; height: 30px; border: none; border-radius: 6px; background: transparent;
+  width: 32px; height: 32px; border: none; border-radius: 10px; background: transparent;
   color: var(--text-muted); cursor: pointer; display: inline-flex; align-items: center;
-  justify-content: center; font-size: 14px; transition: all .15s;
+  justify-content: center; font-size: 14px; transition: all .2s ease;
 }
-.action-btn:hover { background: var(--primary-soft); color: var(--primary); }
-.action-btn.del:hover { background: var(--red-soft); color: var(--red); }
+.action-btn:hover { background: var(--primary-soft); color: var(--primary); transform: scale(1.1); }
+.action-btn.del:hover { background: var(--red-soft); color: var(--red); transform: scale(1.1); }
 
 .pagination {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 20px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 8px;
+  padding: 16px 20px; border-top: none; flex-wrap: wrap; gap: 8px;
+  margin-top: 4px;
 }
 .pag-info { font-size: 12px; color: var(--text-muted); font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 8px; }
 .pag-buttons { display: flex; gap: 4px; }
 .pag-btn {
-  min-width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
-  border: 1px solid var(--border); border-radius: 6px; background: var(--bg-elevated);
-  color: var(--text-muted); font-size: 12px; cursor: pointer; font-family: inherit;
-  font-variant-numeric: tabular-nums; transition: all .15s;
+  min-width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 10px; background: var(--bg-elevated);
+  color: var(--text-muted); font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+  font-variant-numeric: tabular-nums; transition: all .2s ease;
 }
-.pag-btn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
-.pag-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-.pag-btn:disabled { opacity: .35; cursor: default; }
+.pag-btn:hover:not(:disabled) { background: var(--primary-soft); color: var(--primary); transform: translateY(-1px); }
+.pag-btn.active { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(79,70,229,.25); }
+.pag-btn:disabled { opacity: .3; cursor: default; }
 .per-page {
-  padding: 4px 24px 4px 8px; border: 1px solid var(--border); border-radius: 6px;
-  font-size: 12px; background: var(--bg); color: var(--text-muted); font-family: inherit;
+  padding: 6px 28px 6px 10px; border: 2px solid var(--border); border-radius: 10px;
+  font-size: 12px; font-weight: 600; background: var(--bg); color: var(--text-muted); font-family: inherit;
   appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236b7280' d='M2.5 3.75L5 6.25L7.5 3.75'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: right 6px center; cursor: pointer;
+  background-repeat: no-repeat; background-position: right 8px center; cursor: pointer;
+  transition: border-color .15s;
 }
+.per-page:hover { border-color: var(--primary); }
 
 .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; margin-bottom: 16px; }
 .chart-card { padding: 20px; }
@@ -559,7 +564,7 @@ tr.selected { background: rgba(79,70,229,0.06); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.8.1<br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.9.0<br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
