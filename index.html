@@ -210,8 +210,10 @@ td:first-child { border-radius: 10px 0 0 10px; }
 td:last-child { border-radius: 0 10px 10px 0; }
 tr { transition: all .15s ease; cursor: pointer; }
 tr:hover td { background: var(--primary-soft); }
-tr.selected td { background: rgba(79,70,229,0.08); box-shadow: inset 3px 0 0 var(--primary); }
-.dark tr.selected td { background: rgba(129,140,248,0.1); }
+tr.selected td { background: linear-gradient(135deg, rgba(79,70,229,0.1) 0%, rgba(124,58,237,0.04) 100%); border-top: 2px solid var(--primary); border-bottom: 2px solid var(--primary); padding-top: 10px; padding-bottom: 10px; }
+tr.selected td:first-child { border-left: 2px solid var(--primary); }
+tr.selected td:last-child { border-right: 2px solid var(--primary); }
+.dark tr.selected td { background: linear-gradient(135deg, rgba(129,140,248,0.12) 0%, rgba(129,140,248,0.06) 100%); }
 .bulk-bar {
   position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
   background: var(--primary); color: #fff; border-radius: 12px; padding: 10px 20px;
@@ -545,7 +547,7 @@ tr.selected td { background: rgba(79,70,229,0.08); box-shadow: inset 3px 0 0 var
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.9.1<br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.9.2<br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
