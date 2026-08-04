@@ -124,6 +124,8 @@ header {
 .stat-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; opacity: .85; }
 .stat-value { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
 .stat-sub { font-size: 12px; opacity: .8; }
+.stat-value-row { display: flex; align-items: baseline; gap: 8px; }
+.stat-pct { font-size: 14px; font-weight: 600; opacity: .8; }
 
 .tabs { display: flex; gap: 0; margin-bottom: 16px; border-bottom: 2px solid var(--border); }
 .tab-btn {
@@ -557,7 +559,7 @@ tr.selected { background: rgba(79,70,229,0.06); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.8.0<br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.8.1<br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -1054,7 +1056,7 @@ function renderStats(){
     '<div class="stat-item"><div class="stat-icon">⛳</div><div class="stat-content"><div class="stat-label">Nombre de balles</div><div class="stat-value">'+total.toLocaleString('fr')+'</div></div></div>'+
     '<div class="stat-item"><div class="stat-icon">🏷️</div><div class="stat-content"><div class="stat-label">Marques</div><div class="stat-value">'+mSet.size.toLocaleString('fr')+'</div></div></div>'+
     '<div class="stat-item"><div class="stat-icon">🎯</div><div class="stat-content"><div class="stat-label">Modeles</div><div class="stat-value">'+moSet.size.toLocaleString('fr')+'</div></div></div>'+
-    '<div class="stat-item"><div class="stat-icon">🤝</div><div class="stat-content"><div class="stat-label">Avec partenaire</div><div class="stat-value">'+partners.toLocaleString('fr')+'</div><div class="stat-sub">'+pct+' %</div></div></div>';
+    '<div class="stat-item"><div class="stat-icon">🤝</div><div class="stat-content"><div class="stat-label">Avec partenaire</div><div class="stat-value-row"><span class="stat-value">'+partners.toLocaleString('fr')+'</span><span class="stat-pct">'+pct+' %</span></div></div></div>';
 }
 function renderStatsTab(){
   var d=filtered.length?filtered:allData;
