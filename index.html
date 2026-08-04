@@ -543,7 +543,7 @@ tr.selected { background: rgba(79,70,229,0.06); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.6.3</footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v1.6.4<br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -1168,6 +1168,14 @@ function confirmDelete(){
   closeConfirm();
 }
 
+function exportJson(){
+  var data=allData.map(function(b){return{marque:b.marque,modele:b.modele,numero:b.numero,couleur:b.couleur,partenaire:b.partenaire,lien:b.lien};});
+  var blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='balles_de_golf_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(a.href);
+  toast(allData.length+' balles exportees');
+}
 function esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function toast(msg){var c=document.getElementById('toasts');var el=document.createElement('div');el.className='toast';el.textContent=msg;c.appendChild(el);setTimeout(function(){el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(function(){el.remove();},300);},3000);}
 var selectedIds=new Set();
