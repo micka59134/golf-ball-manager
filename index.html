@@ -553,7 +553,7 @@ tr.selected td:last-child { border-right: 2px solid var(--primary); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v2.0.0<br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v2.0.1<br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -903,7 +903,7 @@ function renderTable(){
       return '<tr data-id="'+b.id+'"'+(selectedIds.has(b.id)?' class="selected"':'')+'>'+
         '<td class="cell-marque">'+esc(b.marque)+'</td><td>'+esc(b.modele)+'</td>'+
         '<td class="col-num">'+(b.numero?'<span class="num-badge'+(String(b.numero).length>2?' wide':'')+'">'+esc(b.numero)+'</span>':'')+'</td><td>'+cd+esc(b.couleur)+'</td>'+
-        '<td class="hide-m">'+(hasP?'<span class="badge badge-partner">'+esc(b.partenaire)+'</span>':'<span style="color:var(--text-muted)">\u2014</span>')+'</td>'+
+        '<td>'+(hasP?'<span class="badge badge-partner">'+esc(b.partenaire)+'</span>':'<span style="color:var(--text-muted)">\u2014</span>')+'</td>'+
         '<td class="hide-m">'+(b.lien?'<a class="link-ext" href="'+esc(b.lien)+'" target="_blank" rel="noopener">\uD83D\uDD17</a>':'')+'</td>'+
         '<td class="col-actions">'+
           '<button class="action-btn" title="Modifier" onclick="openEdit(\''+b.id+'\')">\u270F\uFE0F</button>'+
