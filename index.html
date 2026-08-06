@@ -553,7 +553,7 @@ tr.selected td:last-child { border-right: 2px solid var(--primary); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v2.0.1<br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v2.0.2<br><span id="dataDate"></span><br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -610,6 +610,7 @@ function init() {
       buildAcSources();
       applyFilters();
       renderStats();
+      updateDataDate();
     } catch(e) {}
   }
 
@@ -627,6 +628,7 @@ function init() {
       buildAcSources();
       applyFilters();
       renderStats();
+      updateDataDate();
     }).catch(function(err) {
       if (!allData.length) {
         toast('Erreur de connexion Firebase');
@@ -640,7 +642,14 @@ function setSyncStatus(state, text) {}
 
 function syncCache(){
   try{localStorage.setItem('golf_cache',JSON.stringify(allData));localStorage.setItem('golf_cache_ts',String(Date.now()));}catch(e){}
-  populateFilters();buildAcSources();applyFilters();renderStats();
+  populateFilters();buildAcSources();applyFilters();renderStats();updateDataDate();
+}
+function updateDataDate(){
+  var ts=parseInt(localStorage.getItem('golf_cache_ts')||'0');
+  var el=document.getElementById('dataDate');
+  if(!ts||!el)return;
+  var d=new Date(ts);
+  el.textContent='Donnees du '+d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'})+' a '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
 }
 
 function populateFilters() {
