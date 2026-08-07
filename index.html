@@ -553,7 +553,7 @@ tr.selected td:last-child { border-right: 2px solid var(--primary); }
   </div>
 </div>
 
-<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v2.0.4<br><span id="dataDate"></span><br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
+<footer style="text-align:center;padding:24px 16px 16px;font-size:11px;color:var(--text-muted)">Golf Ball Manager &mdash; v2.0.5<br><span id="dataDate"></span><br><button onclick="exportJson()" style="margin-top:8px;background:none;border:1px solid var(--border);color:var(--text-muted);padding:6px 14px;border-radius:8px;font-size:11px;cursor:pointer">Exporter JSON</button></footer>
 
 <button class="btn btn-primary btn-add-mobile" onclick="openAdd()">+ Ajouter une balle</button>
 
@@ -1050,7 +1050,7 @@ function renderStats(){
   var d=filtered.length?filtered:allData;var total=d.length;
   var mSet=new Set();var moSet=new Set();var partners=0;
   d.forEach(function(b){mSet.add(b.marque);moSet.add(b.modele);if(b.partenaire&&b.partenaire!=='Non')partners++;});
-  var pct=total?((partners/total)*100).toFixed(1):'0';
+  var pct=total?((partners/total)*100).toFixed(2):'0';
   document.getElementById('statsRow').innerHTML=
     '<div class="stat-item"><div class="stat-icon">⛳</div><div class="stat-content"><div class="stat-label">Nombre de balles</div><div class="stat-value">'+total.toLocaleString('fr')+'</div></div></div>'+
     '<div class="stat-item"><div class="stat-icon">🏷️</div><div class="stat-content"><div class="stat-label">Marques</div><div class="stat-value">'+mSet.size.toLocaleString('fr')+'</div></div></div>'+
